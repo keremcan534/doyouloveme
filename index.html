@@ -501,8 +501,8 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     cursor:pointer;
   }
   .sos-letter.active{ background: var(--love-pink); color:#1a0004; border-color: var(--love-pink); }
-  #scene-explosion{ background: transparent; }
-  #particles{ position:relative; width:1px; height:1px; }
+  #scene-explosion{ background: transparent; pointer-events: none; }
+  #particles{ position:relative; width:1px; height:1px; pointer-events: none; }
   .particle{
     position:absolute; top:0; left:0;
     width: 10px; height:10px;
@@ -563,6 +563,16 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     pointer-events: none;
   }
   .ending-video.show{ opacity: 1; }
+  .start-video{
+    position:absolute; inset:0;
+    width:100%; height:100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 1.6s ease;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .start-video.show{ opacity: 1; }
   .heart-canvas{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
   .win-content{ position:relative; z-index:2; }
   .win-content .win-emoji{ font-size: clamp(3rem, 12vw, 4.5rem); animation: epicGrowth 8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards infinite; }
@@ -622,6 +632,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
 </div>
 
 <div id="stage">
+  <video id="start-video" class="start-video" src="startbackground.mp4" muted loop playsinline preload="auto"></video>
   <div id="vignette"></div>
   <div id="grain"></div>
   <div id="ambient-flicker"></div>
@@ -650,7 +661,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
            onerror="this.style.display='none'; document.getElementById('sticker-fallback').style.display='block';">
       <span id="sticker-fallback" style="display:none;">💌</span>
     </div>
-    <div class="sticker-note">(you can drop your own sticker here)</div>
+
     <div class="btn-row">
       <button id="btn-no" class="btn btn-no">NO</button>
       <button id="btn-yes" class="btn btn-yes">YES</button>
@@ -1052,9 +1063,13 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
         u.volume = 0;
         speechSynthesis.speak(u);
       }catch(e){}
-    }
     Sound2.ensure();
     Sound2.setMood('calm');
+    const startVideo = document.getElementById('start-video');
+    if (startVideo) {
+      startVideo.classList.add('show');
+      startVideo.play().catch(()=>{});
+    }
     bgMusic.volume = BG_VOLUME;
     bgMusic.play().catch(()=>{});
     ensureBgPlaying();
@@ -1146,6 +1161,11 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     endingStarted = true;
     fadeAudioVolume(bgMusic, 0, 1200); // let the ending track have the moment to itself
     setTimeout(() => { try{ bgMusic.pause(); }catch(e){} }, 1300);
+    const startVideo = document.getElementById('start-video');
+    if (startVideo) {
+      startVideo.classList.remove('show');
+      setTimeout(() => { try{ startVideo.pause(); }catch(e){} }, 1600);
+    }
     endingAudio = new Audio(AUDIO_BASE + 'playdateending.mp3');
     endingAudio.volume = 1;
     endingAudio.play().catch(() => {});
@@ -1858,7 +1878,8 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     }
   }
 
-  btnFinal.addEventListener('click', () => {
+  function handleFinalYes(e) {
+    if(e && e.cancelable) e.preventDefault();
     if(btnFinal.classList.contains('revealed')) return;
     btnFinal.classList.add('revealed');
     Sound2.sfx('chime');
@@ -1875,7 +1896,9 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
         afterPause(1200, () => Sound2.setMood('none'));
       });
     }, 500);
-  });
+  }
+  btnFinal.addEventListener('click', handleFinalYes);
+  btnFinal.addEventListener('touchstart', handleFinalYes, {passive:false});
 
   function burstConfetti(){
     const colors = ['#ff5d9e', '#eaf6ff', '#7ec8ff', '#ff2d4d'];
@@ -1939,10 +1962,18 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
             p.y += Math.cos((now / 700) + p.ty) * 0.15;
           }
         }
+        heartCtx.save();
+        heartCtx.translate(p.x, p.y);
+        heartCtx.scale(dpr * 0.45, dpr * 0.45);
         heartCtx.beginPath();
+        heartCtx.moveTo(0, 0);
+        heartCtx.bezierCurveTo(0, -3, -5, -3, -5, 0);
+        heartCtx.bezierCurveTo(-5, 3, 0, 5, 0, 8);
+        heartCtx.bezierCurveTo(0, 5, 5, 3, 5, 0);
+        heartCtx.bezierCurveTo(5, -3, 0, -3, 0, 0);
         heartCtx.fillStyle = p.color;
-        heartCtx.arc(p.x, p.y, 3.2 * dpr, 0, Math.PI * 2);
         heartCtx.fill();
+        heartCtx.restore();
       });
       heartAnimId = requestAnimationFrame(frame);
     }
@@ -2032,6 +2063,11 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     endingVideo.pause();
     endingVideo.classList.remove('show');
     endingStarted = false;
+    const startVideo = document.getElementById('start-video');
+    if (startVideo) {
+      startVideo.classList.add('show');
+      startVideo.play().catch(()=>{});
+    }
     ensureBgPlaying();
     fadeAudioVolume(bgMusic, BG_VOLUME, 800);
     noCount = 0;
