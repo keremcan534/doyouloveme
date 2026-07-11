@@ -761,6 +761,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     }
 
     function setMood(mood){
+      return; // replaced by the real background track (outsidebackground.mp3)
       if(!ensure()) return;
       if(mood === 'none'){ stopDrone(800); return; }
       const preset = MOODS[mood];
@@ -993,11 +994,13 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     }
     Sound2.ensure();
     Sound2.setMood('calm');
+    bgMusic.play().catch(() => {});
+    fadeAudioVolume(bgMusic, BG_VOLUME, 2200);
     requestTilt();
     document.removeEventListener('pointerdown', unlock);
   }, {once:true});
 
-  function speakLine(text, onDone){
+  function speakLineFallback(text, onDone){
     if(!('speechSynthesis' in window)){
       if(onDone) setTimeout(onDone, Math.min(Math.max(text.length * 70, 1400), 3800));
       return;
@@ -1021,20 +1024,96 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     }
   }
 
-  function showSubtitle(text, cb, persist){
+  /* ---------- real recorded voice lines, with the browser voice as a safety net ---------- */
+  const AUDIO_BASE = 'audio/';
+  let currentLineAudio = null;
+
+  /* ---------- background music bed, ducks down whenever someone is talking ---------- */
+  const BG_VOLUME = 0.28;
+  const bgMusic = new Audio(AUDIO_BASE + 'outsidebackground.mp3');
+  bgMusic.loop = true;
+  bgMusic.volume = 0;
+
+  function fadeAudioVolume(audioEl, target, ms){
+    const start = audioEl.volume;
+    const startTime = performance.now();
+    function step(now){
+      const t = Math.min(1, (now - startTime) / ms);
+      audioEl.volume = start + (target - start) * t;
+      if(t < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+  function duckBg(){ fadeAudioVolume(bgMusic, BG_VOLUME * 0.22, 300); }
+  function restoreBg(){ fadeAudioVolume(bgMusic, BG_VOLUME, 700); }
+
+  let endingAudio = null;
+  function playEndingSong(){
+    fadeAudioVolume(bgMusic, 0, 1200); // let the ending track have the moment to itself
+    endingAudio = new Audio(AUDIO_BASE + 'playdateending.mp3');
+    endingAudio.volume = 1;
+    endingAudio.play().catch(() => {});
+  }
+
+  function playLine(key, text, cb, persist){
+    duckBg();
     subtitleBar.classList.remove('show');
     void subtitleBar.offsetWidth;
     subtitleBar.textContent = text;
     requestAnimationFrame(() => subtitleBar.classList.add('show'));
-    speakLine(text, () => {
+
+    const advance = () => {
+      restoreBg();
       if(!persist) subtitleBar.classList.remove('show');
       if(cb){
         if(persist) cb();
         else setTimeout(cb, 550); // a settle beat before the next thing happens
       }
-    });
+    };
+
+    if(currentLineAudio){ try{ currentLineAudio.pause(); }catch(e){} }
+
+    if(!key){
+      speakLineFallback(text, () => setTimeout(advance, 300));
+      return;
+    }
+
+    const audio = new Audio(AUDIO_BASE + key + '.mp3');
+    currentLineAudio = audio;
+    let settled = false;
+    const finishOnce = () => {
+      if(settled) return;
+      settled = true;
+      setTimeout(advance, 500);
+    };
+    const useFallback = () => {
+      if(settled) return;
+      settled = true;
+      speakLineFallback(text, advance);
+    };
+    audio.addEventListener('ended', finishOnce);
+    audio.addEventListener('error', useFallback);
+    setTimeout(useFallback, 9000); // safety net if neither event ever fires
+    const playPromise = audio.play();
+    if(playPromise && playPromise.catch) playPromise.catch(useFallback);
   }
-  function hideSubtitle(){ subtitleBar.classList.remove('show'); }
+
+  function showSubtitle(text, cb, persist){ playLine(null, text, cb, persist); }
+  function playVoiceOnly(key){
+    duckBg();
+    if(currentLineAudio){ try{ currentLineAudio.pause(); }catch(e){} }
+    const audio = new Audio(AUDIO_BASE + key + '.mp3');
+    currentLineAudio = audio;
+    audio.addEventListener('ended', restoreBg);
+    audio.addEventListener('error', restoreBg);
+    setTimeout(restoreBg, 8000);
+    audio.play().catch(() => { restoreBg(); });
+  }
+  function hideSubtitle(){
+    subtitleBar.classList.remove('show');
+    if(currentLineAudio){ try{ currentLineAudio.pause(); }catch(e){} }
+    if('speechSynthesis' in window) speechSynthesis.cancel();
+  }
 
   /* ---------- the title can "lose power" letter by letter, like a neon sign ---------- */
   let titleLetters = [];
@@ -1147,6 +1226,8 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     showScene('scene-win');
     burstConfetti();
     startHeartFinale();
+    playVoiceOnly('direct-caption');
+    afterPause(2600, playEndingSong);
     Sound2.sfx('chime');
     afterPause(1200, () => Sound2.setMood('none'));
     vibe([30,20,30]);
@@ -1157,7 +1238,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     if(!yesConfirmUsed){
       yesConfirmUsed = true;
       showScene('scene-confirm');
-      showSubtitle("Wait, really? You mean it?");
+      playLine('confirm', "Wait, really? You mean it?");
       return;
     }
     winDirect();
@@ -1211,15 +1292,15 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
   function excuseClassicFix(proceed){
     blackout(850, () => {
       showScene('scene-blackout');
-      showSubtitle("Whoa, the power's out. Hang on, I'm fixing it.", proceed);
+      playLine('classic-fix', "Whoa, the power's out. Hang on, I'm fixing it.", proceed);
     });
   }
 
   function excuseWrongWire(proceed){
     blackout(850, () => {
       showScene('scene-blackout');
-      showSubtitle("Hmm, wrong wire. Let me try again.", () => {
-        afterPause(650, () => showSubtitle("There. Better?", proceed));
+      playLine('wrong-wire-1', "Hmm, wrong wire. Let me try again.", () => {
+        afterPause(650, () => playLine('wrong-wire-2', "There. Better?", proceed));
       });
     }, 'solid-black-blue');
   }
@@ -1229,7 +1310,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
       showScene('scene-blackout');
       candlesFx.classList.add('show');
       Sound2.setMood('warm');
-      showSubtitle("No lights, but I found candles. Almost feels like I planned this.", () => {
+      playLine('candles', "No lights, but I found candles. Almost feels like I planned this.", () => {
         candlesFx.classList.remove('show');
         proceed();
       });
@@ -1244,7 +1325,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
         fuseSwitch.classList.add('flip');
         spawnSparks(window.innerWidth / 2, window.innerHeight * 0.62, 7);
       });
-      showSubtitle("Found it — wait, no, that's the doorbell.", () => {
+      playLine('fusebox', "Found it — wait, no, that's the doorbell.", () => {
         fuseboxFx.classList.remove('show');
         fuseSwitch.classList.remove('flip');
         proceed();
@@ -1257,14 +1338,10 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
       showScene('scene-blackout');
       radioFx.classList.remove('static');
       radioFx.classList.add('show');
-      showSubtitle("Found the radio. Let's see...", () => {
-        radioFx.classList.add('static');
-        afterPause(500, () => {
-          showSubtitle("...just static. Never mind.", () => {
-            radioFx.classList.remove('show', 'static');
-            proceed();
-          });
-        });
+      afterPause(1400, () => radioFx.classList.add('static'));
+      playLine('radio', "Found the radio. Let's see... ...just static. Never mind.", () => {
+        radioFx.classList.remove('show', 'static');
+        proceed();
       });
     });
   }
@@ -1273,10 +1350,10 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     blackout(850, () => {
       showScene('scene-blackout');
       flashlightFx.classList.add('show');
-      showSubtitle("Hold on, I've got a light... here!", () => {
+      playLine('flashlight-1', "Hold on, I've got a light... here!", () => {
         afterPause(600, () => {
           flashlightFx.classList.remove('show');
-          showSubtitle("...1% battery. Of course.", proceed);
+          playLine('flashlight-2', "...1% battery. Of course.", proceed);
         });
       });
     });
@@ -1285,11 +1362,11 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
   function excuseGhost(proceed){
     blackout(950, () => {
       showScene('scene-blackout');
-      showSubtitle("Wait — did you hear that?", () => {
+      playLine('ghost-1', "Wait — did you hear that?", () => {
         stage.classList.add('shake');
         setTimeout(() => stage.classList.remove('shake'), 500);
         afterPause(750, () => {
-          showSubtitle("...never mind. Probably the cat.", proceed);
+          playLine('ghost-2', "...never mind. Probably the cat.", proceed);
         });
       });
     });
@@ -1298,7 +1375,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
   function excuseVideoWatch(proceed){
     blackout(850, () => {
       showScene('scene-blackout');
-      showSubtitle("Not buying it? Fine, watch this.", () => {
+      playLine('video-intro', "Not buying it? Fine, watch this.", () => {
         startCatVideo(proceed);
       });
     });
@@ -1309,7 +1386,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     watchBarFill.style.width = '0%';
     catVideo.currentTime = 0;
     catVideo.onended = () => {
-      showSubtitle("See? Told you.", proceed);
+      playLine('video-end', "See? Told you.", proceed);
     };
     catVideo.ontimeupdate = () => {
       if(catVideo.duration){
@@ -1375,7 +1452,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     updateSOSScore();
     renderSOSGrid();
     showScene('scene-sos');
-    showSubtitle("Let's play a quick game while I fix this.");
+    playLine('sos-intro', "Let's play a quick game while I fix this.");
   }
 
   function setSOSLock(state){
@@ -1457,10 +1534,10 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
       Sound2.sfx('spark');
       if(who === 'player' && !sosPlayerFirstScoreSaid){
         sosPlayerFirstScoreSaid = true;
-        showSubtitle("Wait, since when are you good at this?");
+        playLine('sos-player-score', "Wait, since when are you good at this?");
       } else if(who === 'adam' && !sosAdamFirstScoreSaid){
         sosAdamFirstScoreSaid = true;
-        showSubtitle("Ha, called it.");
+        playLine('sos-adam-score', "Ha, called it.");
       }
     }
     if(sosBoard.every(v => v)){
@@ -1526,7 +1603,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
       stage.classList.remove('flicker');
       showScene('scene-blackout');
       playDiscoStrobe(() => {
-        showSubtitle("Wrong switch — that one's the disco breaker.", proceed);
+        playLine('disco', "Wrong switch — that one's the disco breaker.", proceed);
       });
     }, FLICKER_MS);
   }
@@ -1552,7 +1629,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     blackout(700, () => {
       showScene('scene-blackout');
       showCallCard(() => {
-        showSubtitle("Hey, yeah, almost done. Two minutes!", () => {
+        playLine('phone-call', "Hey, yeah, almost done. Two minutes!", () => {
           hideCallCard();
           proceed();
         });
@@ -1564,7 +1641,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     blackout(850, () => {
       showScene('scene-blackout');
       showCallCard(() => {
-        showSubtitle("Forget it, I'll fix it myself.", () => {
+        playLine('power-hold', "Forget it, I'll fix it myself.", () => {
           hideCallCard();
           proceed();
         });
@@ -1576,7 +1653,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     blackout(700, () => {
       showScene('scene-blackout');
       showCallCard(() => {
-        showSubtitle("Someone's at the door... wrong apartment.", () => {
+        playLine('neighbor', "Someone's at the door... wrong apartment.", () => {
           hideCallCard();
           proceed();
         });
@@ -1608,7 +1685,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     Sound2.setMood('tense');
     btnNo.classList.add('evasive-armed');
     positionNoInPlace();
-    showSubtitle("Catch me if you can!");
+    playLine('catch-me', "Catch me if you can!");
     btnNo.addEventListener('pointerenter', handleEvade);
     btnNo.addEventListener('touchstart', handleEvadeTouch, {passive:false});
   }
@@ -1659,7 +1736,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
         stage.classList.remove('shake');
         showScene('scene-final');
         Sound2.setMood('warm');
-        showSubtitle("Okay, I give up. I made this just for you. Go ahead, try it.", null, true);
+        playLine('give-up', "Okay, I give up. I made this just for you. Go ahead, try it.", null, true);
       }, 1700);
     }, 580);
   }
@@ -1689,12 +1766,14 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     Sound2.sfx('chime');
     vibe(40);
     setTimeout(() => {
-      showSubtitle("I knew you'd pick this one. I really do love you.", () => {
+      playLine('final-reveal', "I knew you'd pick this one. I really do love you.", () => {
         document.getElementById('win-title').textContent = 'there it is.';
         document.getElementById('win-caption').textContent = "that's exactly what I was hoping for.";
         showScene('scene-win');
         burstConfetti();
         startHeartFinale();
+        playVoiceOnly('final-caption');
+        afterPause(2600, playEndingSong);
         afterPause(1200, () => Sound2.setMood('none'));
       });
     }, 500);
@@ -1836,7 +1915,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
   let stickerTimer = null;
   function stickerPressStart(){
     stickerTimer = setTimeout(() => {
-      showSubtitle("Psst — I've been nervous about this all week.");
+      playLine('easter-egg', "Psst — I've been nervous about this all week.");
       vibe(30);
     }, 1200);
   }
@@ -1850,6 +1929,9 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
 
   btnReplay.addEventListener('click', () => {
     Sound2.sfx('click');
+    if(currentLineAudio){ try{ currentLineAudio.pause(); }catch(e){} currentLineAudio = null; }
+    if(endingAudio){ try{ endingAudio.pause(); }catch(e){} endingAudio = null; }
+    fadeAudioVolume(bgMusic, BG_VOLUME, 800);
     noCount = 0;
     evadeAttempts = 0;
     evasiveMode = false;
@@ -1886,7 +1968,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     if(evasiveMode) positionNoInPlace();
   });
 
-  showSubtitle("Hey. There's something I've been wanting to ask you.");
+  playLine('greeting', "Hey. There's something I've been wanting to ask you.");
 })();
 </script>
 
