@@ -1169,7 +1169,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
       startVideo.classList.remove('show');
       setTimeout(() => { try{ startVideo.pause(); }catch(e){} }, 1600);
     }
-    endingAudio = new Audio(AUDIO_BASE + 'playdateending.mp3');
+    if (!endingAudio) endingAudio = new Audio(AUDIO_BASE + 'playdateending.mp3');
     endingAudio.volume = 1;
     endingAudio.play().catch(() => {});
     endingVideo.currentTime = 0;
@@ -1886,18 +1886,26 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     btnFinal.classList.add('revealed');
     Sound2.sfx('chime');
     vibe(40);
+    
+    // Unlock ending audio permissions within user gesture
+    if (!endingAudio) {
+      endingAudio = new Audio(AUDIO_BASE + 'playdateending.mp3');
+      endingAudio.play().then(() => { endingAudio.pause(); endingAudio.currentTime = 0; }).catch(() => {});
+    }
+
     setTimeout(() => {
+      document.getElementById('win-title').textContent = 'there it is.';
+      document.getElementById('win-caption').textContent = "that's exactly what I was hoping for.";
+      showScene('scene-win');
+      burstConfetti();
+      startHeartFinale();
+      
       playLine('final-reveal', "I knew you'd pick this one. I really do love you.", () => {
-        document.getElementById('win-title').textContent = 'there it is.';
-        document.getElementById('win-caption').textContent = "that's exactly what I was hoping for.";
-        showScene('scene-win');
-        burstConfetti();
-        startHeartFinale();
         playVoiceOnly('final-caption');
-        afterPause(2600, playEndingSong);
+        afterPause(1500, playEndingSong);
         afterPause(1200, () => Sound2.setMood('none'));
       });
-    }, 200);
+    }, 350); // fast transition to final scene so it feels instant
   }
   btnFinal.addEventListener('click', handleFinalYes);
   btnFinal.addEventListener('touchstart', handleFinalYes, {passive:false});
