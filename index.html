@@ -552,6 +552,16 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
   }
   .btn-final .truth{ z-index:1; color:#0a0a0a; text-shadow: 0 0 6px rgba(255,255,255,0.7); }
   .btn-final.revealed .cover{ transform: translateY(-140%) rotate(-12deg); opacity: 0; }
+  .ending-video{
+    position:absolute; inset:0;
+    width:100%; height:100%;
+    object-fit: cover;
+    filter: blur(7px) brightness(0.55) saturate(1.15);
+    opacity: 0;
+    transition: opacity 1.6s ease;
+    pointer-events: none;
+  }
+  .ending-video.show{ opacity: 1; }
   .heart-canvas{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
   .win-content{ position:relative; z-index:2; }
   .win-content .win-emoji{ font-size: clamp(3rem, 12vw, 4.5rem); animation: pop .5s ease; filter: drop-shadow(0 0 20px rgba(255,93,158,.5)); }
@@ -687,6 +697,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
   </section>
 
   <section id="scene-win" class="scene">
+    <video id="ending-video" class="ending-video" src="background.mp4" muted loop playsinline preload="auto"></video>
     <canvas class="heart-canvas" id="heart-canvas"></canvas>
     <div class="win-content">
       <div class="win-emoji">💖</div>
@@ -1132,6 +1143,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
   function restoreBg(){ if(endingStarted) return; fadeAudioVolume(bgMusic, BG_VOLUME, 700); }
 
   let endingAudio = null;
+  const endingVideo = document.getElementById('ending-video');
   function playEndingSong(){
     endingStarted = true;
     fadeAudioVolume(bgMusic, 0, 1200); // let the ending track have the moment to itself
@@ -1139,6 +1151,9 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     endingAudio = new Audio(AUDIO_BASE + 'playdateending.mp3');
     endingAudio.volume = 1;
     endingAudio.play().catch(() => {});
+    endingVideo.currentTime = 0;
+    endingVideo.classList.add('show');
+    endingVideo.play().catch(() => {});
   }
 
   function playLine(key, text, cb, persist){
@@ -2017,6 +2032,8 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     Sound2.sfx('click');
     if(currentLineAudio){ try{ currentLineAudio.pause(); }catch(e){} currentLineAudio = null; }
     if(endingAudio){ try{ endingAudio.pause(); }catch(e){} endingAudio = null; }
+    endingVideo.pause();
+    endingVideo.classList.remove('show');
     endingStarted = false;
     bgMusic.play().catch(() => {});
     fadeAudioVolume(bgMusic, BG_VOLUME, 800);
