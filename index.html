@@ -619,6 +619,19 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     }
     #stage.flicker #blackout-layer{ animation: none !important; opacity: 1; }
   }
+  .rhythm-heart {
+    position: fixed;
+    pointer-events: none;
+    z-index: 100;
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.2);
+    animation: popHeart 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  }
+  @keyframes popHeart {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.2); }
+    30% { opacity: 0.9; transform: translate(-50%, -50%) scale(1.5); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+  }
 </style>
 </head>
 <body>
@@ -1175,6 +1188,32 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     endingVideo.currentTime = 0;
     endingVideo.classList.add('show');
     endingVideo.play().catch(() => {});
+    
+    startEndingRhythmHearts();
+  }
+
+  let endingRhythmTimer = null;
+  function startEndingRhythmHearts() {
+    if(REDUCE_MOTION) return;
+    if(endingRhythmTimer) clearTimeout(endingRhythmTimer);
+    function tick() {
+      if(!endingStarted) return;
+      spawnRhythmHeart();
+      if(Math.random() > 0.4) spawnRhythmHeart();
+      endingRhythmTimer = setTimeout(tick, 526); // ~114 BPM for Playdate
+    }
+    tick();
+  }
+  function spawnRhythmHeart() {
+    const h = document.createElement('div');
+    h.className = 'rhythm-heart';
+    h.textContent = ['💖', '💕', '💗', '💓', '💞'][Math.floor(Math.random()*5)];
+    h.style.left = (Math.random() * 90 + 5) + 'vw';
+    h.style.top = (Math.random() * 90 + 5) + 'vh';
+    const size = 1.5 + Math.random() * 2.5;
+    h.style.fontSize = size + 'rem';
+    document.body.appendChild(h);
+    setTimeout(() => h.remove(), 700);
   }
 
   function playLine(key, text, cb, persist){
@@ -1887,25 +1926,29 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     Sound2.sfx('chime');
     vibe(40);
     
-    // Unlock ending audio permissions within user gesture
+    // Switch scene immediately!
+    document.getElementById('win-title').textContent = 'there it is.';
+    document.getElementById('win-caption').textContent = "that's exactly what I was hoping for.";
+    showScene('scene-win');
+    burstConfetti();
+    startHeartFinale();
+
+    // Prepare ending audio
     if (!endingAudio) {
       endingAudio = new Audio(AUDIO_BASE + 'playdateending.mp3');
       endingAudio.play().then(() => { endingAudio.pause(); endingAudio.currentTime = 0; }).catch(() => {});
     }
 
+    // Play ending music and video almost instantly (small delay for dramatic effect)
     setTimeout(() => {
-      document.getElementById('win-title').textContent = 'there it is.';
-      document.getElementById('win-caption').textContent = "that's exactly what I was hoping for.";
-      showScene('scene-win');
-      burstConfetti();
-      startHeartFinale();
-      
-      playLine('final-reveal', "I knew you'd pick this one. I really do love you.", () => {
-        playVoiceOnly('final-caption');
-        afterPause(1500, playEndingSong);
-        afterPause(1200, () => Sound2.setMood('none'));
-      });
-    }, 350); // fast transition to final scene so it feels instant
+      playEndingSong();
+      Sound2.setMood('none');
+    }, 400);
+
+    // Play the final line but don't let it block the ending song
+    playLine('final-reveal', "I knew you'd pick this one. I really do love you.", () => {
+      playVoiceOnly('final-caption');
+    });
   }
   btnFinal.addEventListener('click', handleFinalYes);
   btnFinal.addEventListener('touchstart', handleFinalYes, {passive:false});
@@ -2073,6 +2116,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     endingVideo.pause();
     endingVideo.classList.remove('show');
     endingStarted = false;
+    if(endingRhythmTimer) clearTimeout(endingRhythmTimer);
     const startVideo = document.getElementById('start-video');
     if (startVideo) {
       startVideo.classList.add('show');
