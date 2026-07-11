@@ -1,0 +1,1894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>do you love me?</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%92%96%3C/text%3E%3C/svg%3E">
+<meta name="theme-color" content="#050506">
+<meta property="og:title" content="do you love me?">
+<meta property="og:description" content="I made you something. Just answer honestly.">
+<meta property="og:type" content="website">
+<!-- Once this is hosted, you can add a real preview image, e.g.:
+<meta property="og:image" content="https://your-site-url/preview.png">
+so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
+<meta name="description" content="A little interactive yes/no page made for someone special.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #050506;
+    --neon-white: #eaf6ff;
+    --neon-blue: #7ec8ff;
+    --neon-blue-dark: #1f6fb3;
+    --neon-red: #ff2d4d;
+    --neon-red-dark: #6e0014;
+    --love-pink: #ff5d9e;
+    --ink: #f2ede4;
+    --dim: #8f8a9c;
+  }
+  *{ box-sizing: border-box; }
+  html,body{ margin:0; padding:0; height:100%; overflow:hidden; }
+  body{
+    background: var(--bg);
+    font-family: 'Nunito', sans-serif;
+    color: var(--ink);
+    -webkit-tap-highlight-color: transparent;
+  }
+  #stage{
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 50% 34%, rgba(126,200,255,0.06) 0%, rgba(126,200,255,0.02) 30%, transparent 60%),
+      var(--bg);
+  }
+  #vignette{
+    position:absolute; inset:0;
+    pointer-events:none;
+    background: radial-gradient(circle at 50% 45%, transparent 35%, rgba(0,0,0,0.75) 100%);
+    z-index: 2;
+  }
+  #grain{
+    position:absolute; inset:-20%;
+    pointer-events:none;
+    z-index: 5;
+    opacity: .05;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    animation: grainShift 1s steps(2) infinite;
+  }
+  @keyframes grainShift{
+    0%{ transform: translate(0,0); } 50%{ transform: translate(-2%,1%); } 100%{ transform: translate(1%,-2%); }
+  }
+  #ambient-flicker{
+    position:absolute; inset:0;
+    pointer-events:none;
+    z-index: 4;
+    background: rgba(255,255,255,0.025);
+    opacity: 0;
+    animation: ambientFlicker 6.5s infinite;
+  }
+  @keyframes ambientFlicker{
+    0%, 91%, 100%{ opacity:0; }
+    92%{ opacity:1; } 93%{ opacity:0; } 95%{ opacity:.6; } 96%{ opacity:0; }
+  }
+  #blackout-layer{
+    position:absolute; inset:0;
+    background:#000;
+    opacity:0;
+    pointer-events:none;
+    z-index: 50;
+  }
+  #stage.flicker #blackout-layer{ animation: flickerAnim 1.6s steps(1,end) forwards; }
+  #stage.solid-black #blackout-layer{
+    opacity:1;
+    background: radial-gradient(circle at 50% 42%, rgba(90,0,12,0.4), #000 68%);
+    animation: emergencyPulse 1.9s ease-in-out infinite;
+  }
+  #stage.solid-black-blue #blackout-layer{
+    opacity:1;
+    background: radial-gradient(circle at 50% 42%, rgba(10,40,110,0.42), #000 68%);
+    animation: emergencyPulse 1.9s ease-in-out infinite;
+  }
+  #stage.solid-black-warm #blackout-layer{
+    opacity:1;
+    background: radial-gradient(circle at 50% 42%, rgba(130,70,10,0.32), #000 66%);
+    animation: emergencyPulse 2.6s ease-in-out infinite;
+  }
+  @keyframes flickerAnim{
+    0%{ opacity:0; background:#000; }
+    3%{ opacity:1; background:#fff8e0; }
+    7%{ opacity:.1; background:#000; }
+    15%{ opacity:1; background:#000; }
+    24%{ opacity:.1; }
+    33%{ opacity:1; }
+    46%{ opacity:0; }
+    58%{ opacity:1; }
+    72%{ opacity:.2; }
+    86%{ opacity:1; }
+    100%{ opacity:1; }
+  }
+  @keyframes emergencyPulse{
+    0%,100%{ filter: brightness(1); } 50%{ filter: brightness(1.4); }
+  }
+  #sos-layer{
+    position:absolute; inset:0;
+    pointer-events:none;
+    z-index: 55;
+    background: #fff6da;
+    opacity: 0;
+  }
+  .candles-row{
+    position:absolute; bottom: 22vh; left:50%;
+    transform: translateX(-50%);
+    display:flex; gap: 20px; align-items:flex-end;
+    z-index: 56; opacity: 0; pointer-events:none;
+    transition: opacity .6s ease;
+  }
+  .candles-row.show{ opacity: 1; }
+  .candle{ width: 10px; height: 46px; background: linear-gradient(180deg, #fff8e8, #e9d9b8); border-radius: 3px; position:relative; box-shadow: 0 2px 6px rgba(0,0,0,.4); }
+  .candle::before{ content:''; position:absolute; top:-6px; left:50%; transform:translateX(-50%); width:2px; height:8px; background:#3a2f22; }
+  .flame{
+    position:absolute; top:-22px; left:50%; width:12px; height:22px; transform:translateX(-50%);
+    background: radial-gradient(circle at 50% 70%, #fff6c8 0%, #ffb347 45%, #ff7a1a 75%, transparent 80%);
+    border-radius: 50% 50% 50% 50% / 65% 65% 35% 35%;
+    animation: flameFlicker 1.6s ease-in-out infinite;
+    transform-origin: 50% 100%;
+  }
+  .candle:nth-child(2) .flame{ animation-delay: .3s; }
+  .candle:nth-child(3) .flame{ animation-delay: .55s; }
+  @keyframes flameFlicker{
+    0%,100%{ transform: translateX(-50%) scale(1) rotate(0deg); opacity:1; }
+    25%{ transform: translateX(-48%) scale(1.05,0.95) rotate(-3deg); opacity:.9; }
+    50%{ transform: translateX(-52%) scale(0.92,1.08) rotate(2deg); opacity:1; }
+    75%{ transform: translateX(-49%) scale(1.03,0.97) rotate(-2deg); opacity:.95; }
+  }
+  .candle-glow{
+    position:absolute; bottom:-16px; left:50%; transform:translateX(-50%);
+    width:200px; height:110px;
+    background: radial-gradient(ellipse at 50% 100%, rgba(255,170,60,0.32), transparent 70%);
+    filter: blur(4px); pointer-events:none;
+  }
+  .fusebox{
+    position:absolute; bottom: 22vh; left:50%; transform: translateX(-50%);
+    width: 62px; height: 92px;
+    background: #1c1a22; border: 2px solid rgba(255,255,255,.15); border-radius: 6px;
+    display:flex; align-items:center; justify-content:center;
+    z-index: 56; opacity: 0; transition: opacity .4s ease; pointer-events:none;
+  }
+  .fusebox.show{ opacity: 1; }
+  .fuse-switch{
+    width: 14px; height: 34px;
+    background: linear-gradient(180deg,#d8d8de,#8a8a92);
+    border-radius: 3px;
+    transform-origin: top center;
+    transition: transform .35s ease;
+  }
+  .fuse-switch.flip{ transform: rotate(35deg); }
+  .radio-fx{
+    position:absolute; bottom: 22vh; left:50%; transform: translateX(-50%);
+    display:flex; align-items:flex-end; gap:4px; height:40px;
+    z-index: 56; opacity: 0; transition: opacity .4s ease; pointer-events:none;
+  }
+  .radio-fx.show{ opacity: 1; }
+  .eq-bar{ width:6px; background: linear-gradient(180deg, var(--neon-blue), var(--neon-red)); border-radius:2px; animation: eqBounce 0.9s ease-in-out infinite; }
+  .eq-bar:nth-child(1){ animation-delay:0s; height:14px; }
+  .eq-bar:nth-child(2){ animation-delay:.15s; height:26px; }
+  .eq-bar:nth-child(3){ animation-delay:.3s; height:38px; }
+  .eq-bar:nth-child(4){ animation-delay:.1s; height:20px; }
+  .eq-bar:nth-child(5){ animation-delay:.25s; height:30px; }
+  @keyframes eqBounce{ 0%,100%{ transform: scaleY(0.4); } 50%{ transform: scaleY(1); } }
+  .radio-fx.static .eq-bar{ animation: none !important; background: #4a4750 !important; height:6px !important; }
+  .flashlight-fx{
+    position:absolute; inset:0; pointer-events:none; z-index: 56; opacity: 0;
+    background: radial-gradient(circle at 50% 55%, rgba(255,255,220,0.5) 0%, rgba(255,255,220,0.12) 18%, transparent 42%);
+    transition: opacity .3s ease;
+  }
+  .flashlight-fx.show{ opacity: 1; animation: flashlightWobble 2.2s ease-in-out infinite; }
+  @keyframes flashlightWobble{ 0%,100%{ opacity:.9; } 50%{ opacity:.6; } }
+  .mute-btn{
+    position: fixed; top: 14px; right: 14px; z-index: 95;
+    width: 38px; height: 38px; border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(0,0,0,0.5);
+    color: var(--ink); font-size: 1.05rem;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+  }
+  #stage.fade-to-black #blackout-layer{
+    transition: opacity 1.3s ease;
+    opacity: 1;
+    background: #000;
+  }
+  .letter{
+    display: inline-block;
+    transition: opacity .25s ease, text-shadow .25s ease;
+  }
+  @media (prefers-reduced-motion: reduce){
+    #stage.fade-to-black #blackout-layer, .letter{ transition: none !important; }
+  }
+  .scene{
+    position:absolute; inset:0;
+    display:none;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding: 6vh 6vw;
+    z-index: 3;
+  }
+  .scene.active{ display:flex; }
+  .title{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:800;
+    font-size: clamp(2.1rem, 8vw, 3.4rem);
+    letter-spacing: -0.02em;
+    margin: 0 0 4vh 0;
+    text-transform: lowercase;
+  }
+  .title .heart{ color: var(--love-pink); text-shadow: 0 0 18px rgba(255,93,158,0.55); }
+  .sticker-slot{
+    width: clamp(96px, 22vw, 140px);
+    height: clamp(96px, 22vw, 140px);
+    border-radius: 50%;
+    border: 2px dashed rgba(255,255,255,0.18);
+    display:flex; align-items:center; justify-content:center;
+    font-size: clamp(2.2rem, 7vw, 3rem);
+    margin-bottom: 5vh;
+    background: rgba(255,255,255,0.02);
+    cursor: pointer;
+  }
+  .sticker-note{
+    font-size: 0.68rem;
+    color: var(--dim);
+    margin-top: -3.6vh;
+    margin-bottom: 4.2vh;
+    letter-spacing: .02em;
+  }
+  .confirm-lead{
+    font-size: clamp(0.9rem, 3.4vw, 1.05rem);
+    color: var(--dim);
+    max-width: 320px;
+    margin: 0 0 4vh;
+  }
+  .btn-row{
+    display:flex;
+    gap: clamp(14px, 4vw, 28px);
+    position:relative;
+    width:100%;
+    justify-content:center;
+    flex-wrap: nowrap;
+  }
+  .btn{
+    position: relative;
+    overflow: hidden;
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size: clamp(1rem, 4vw, 1.35rem);
+    padding: 1em 1.8em;
+    border-radius: 999px;
+    cursor: pointer;
+    color: #0a0a0a;
+    transition: transform .08s ease;
+    touch-action: manipulation;
+    user-select: none;
+  }
+  .btn::before{
+    content:'';
+    position:absolute; inset:-40% -10%;
+    background: repeating-linear-gradient(115deg,
+      rgba(255,255,255,0.45) 0px, rgba(255,255,255,0.45) 2px,
+      transparent 2px, transparent 7px);
+    mix-blend-mode: overlay;
+    opacity:.6;
+    pointer-events:none;
+  }
+  .btn:active{ transform: translateY(3px); }
+  .btn-yes{
+    background: linear-gradient(160deg, var(--neon-white), var(--neon-blue) 55%, var(--neon-blue-dark));
+    border: 2px solid rgba(255,255,255,0.65);
+    box-shadow:
+      0 0 8px rgba(234,246,255,0.8),
+      0 0 22px rgba(126,200,255,0.6),
+      0 0 55px rgba(126,200,255,0.35),
+      inset 0 0 10px rgba(255,255,255,0.55);
+    text-shadow: 0 0 6px rgba(255,255,255,0.7);
+    animation: neonFlickerYes 5.5s infinite;
+  }
+  .btn-no{
+    background: linear-gradient(160deg, #ffb3ba, var(--neon-red) 55%, var(--neon-red-dark));
+    border: 2px solid rgba(255,255,255,0.4);
+    box-shadow:
+      0 0 8px rgba(255,45,77,0.85),
+      0 0 22px rgba(255,45,77,0.6),
+      0 0 55px rgba(255,45,77,0.35),
+      inset 0 0 10px rgba(255,255,255,0.3);
+    color: #1a0004;
+    text-shadow: 0 0 6px rgba(255,255,255,0.5);
+    animation: neonFlickerNo 6.4s infinite;
+    animation-delay: .8s;
+  }
+  @keyframes neonFlickerYes{
+    0%, 15%, 17%, 60%, 62%, 100%{ filter: brightness(1); }
+    16%{ filter: brightness(.5); } 61%{ filter: brightness(.7); }
+  }
+  @keyframes neonFlickerNo{
+    0%, 22%, 24%, 70%, 72%, 100%{ filter: brightness(1); }
+    23%{ filter: brightness(.5); } 71%{ filter: brightness(.65); }
+  }
+  .btn-no.evasive-armed{
+    position: fixed;
+    z-index: 40;
+    left: auto; top: auto;
+  }
+  .adam-figure{
+    width: clamp(78px, 19vw, 106px);
+    height: clamp(78px, 19vw, 106px);
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 35%, #17141d 0%, #000 75%);
+    position: relative;
+    box-shadow: 0 0 45px rgba(255,45,77,0.14), 0 12px 30px rgba(0,0,0,.7);
+    animation: figureBreathe 3.6s ease-in-out infinite;
+    margin-bottom: 2vh;
+  }
+  .adam-figure.small{ transform: scale(.72); margin-bottom: 1vh; }
+  .adam-figure .eye{
+    position:absolute;
+    top: 42%;
+    width: 7px; height:7px;
+    border-radius:50%;
+    background: var(--neon-red);
+    box-shadow: 0 0 8px var(--neon-red), 0 0 20px var(--neon-red);
+    animation: eyeFlicker 4.2s infinite;
+    transition: transform .15s ease-out;
+  }
+  .adam-figure .eye-left{ left: 32%; }
+  .adam-figure .eye-right{ left: 60%; animation-delay: .2s; }
+  @keyframes figureBreathe{
+    0%,100%{ transform: scale(1); } 50%{ transform: scale(1.04); }
+  }
+  @keyframes eyeFlicker{
+    0%,90%,100%{ opacity:1; } 92%{ opacity:.15; } 94%{ opacity:1; } 96%{ opacity:.1; }
+  }
+  #subtitle-bar{
+    position: fixed;
+    left: 50%;
+    bottom: clamp(26px, 6vh, 56px);
+    transform: translateX(-50%);
+    max-width: min(560px, 88vw);
+    background: rgba(0,0,0,0.78);
+    border: 1px solid rgba(255,255,255,0.09);
+    padding: 13px 22px;
+    border-radius: 5px;
+    font-size: clamp(0.92rem, 3.6vw, 1.1rem);
+    line-height: 1.5;
+    text-align: center;
+    letter-spacing: .01em;
+    color: var(--ink);
+    opacity: 0;
+    z-index: 80;
+    pointer-events: none;
+  }
+  #subtitle-bar.show{
+    animation: subtitleIn .15s ease forwards;
+  }
+  @keyframes subtitleIn{
+    from{ opacity:0; transform: translateX(-50%) translateY(5px); }
+    to{ opacity:1; transform: translateX(-50%) translateY(0); }
+  }
+  .call-card{
+    position:fixed;
+    top: 7vh;
+    left:50%;
+    transform: translateX(-50%) translateY(-16px);
+    background: rgba(18,16,24,0.92);
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 16px;
+    padding: 12px 20px;
+    display:flex;
+    align-items:center;
+    gap: 12px;
+    opacity: 0;
+    pointer-events:none;
+    transition: opacity .3s ease, transform .3s ease;
+    z-index: 85;
+  }
+  .call-card.show{ opacity:1; transform: translateX(-50%) translateY(0); }
+  .call-icon{ font-size: 1.5rem; animation: ringWiggle .5s ease-in-out infinite; }
+  @keyframes ringWiggle{
+    0%,100%{ transform: rotate(0deg); } 25%{ transform: rotate(-16deg); } 75%{ transform: rotate(16deg); }
+  }
+  .call-name{ font-family:'Baloo 2', sans-serif; font-weight:700; font-size: .95rem; text-align:left; }
+  .call-status{ font-size: .78rem; color: var(--dim); text-align:left; }
+  .watch-panel{ margin-top: 1vh; display:flex; flex-direction:column; align-items:center; }
+  .watch-video{
+    width: min(220px, 58vw);
+    aspect-ratio: 9 / 16;
+    object-fit: cover;
+    border-radius: 18px;
+    border: 2px solid rgba(255,255,255,0.18);
+    box-shadow: 0 0 25px rgba(255,45,77,0.25), 0 14px 30px rgba(0,0,0,.6);
+  }
+  .watch-bar{
+    width: min(220px, 58vw); height: 6px; border-radius: 999px;
+    background: rgba(255,255,255,0.08);
+    overflow:hidden; margin-top: 12px;
+  }
+  .watch-bar-fill{
+    height:100%; width:0%;
+    background: linear-gradient(90deg, var(--neon-red), var(--neon-white));
+  }
+  .sos-score{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size: .95rem;
+    color: var(--dim);
+    margin-bottom: 1.6vh;
+  }
+  .sos-grid{
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    width: min(220px, 62vw);
+    margin-bottom: 2vh;
+  }
+  .sos-cell{
+    aspect-ratio: 1;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.16);
+    background: rgba(255,255,255,0.04);
+    color: var(--ink);
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size: 1.05rem;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    padding:0;
+    transition: background .2s ease, box-shadow .2s ease;
+  }
+  .sos-cell.filled{ cursor:default; }
+  .sos-cell.match-player{ background: rgba(126,200,255,0.4); box-shadow: 0 0 10px rgba(126,200,255,0.6); }
+  .sos-cell.match-adam{ background: rgba(255,45,77,0.4); box-shadow: 0 0 10px rgba(255,45,77,0.6); }
+  .sos-grid.locked{ opacity:.55; pointer-events:none; }
+  .sos-toggle{ display:flex; gap: 10px; }
+  .sos-letter{
+    padding: .5em 1.3em;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.25);
+    background: transparent;
+    color: var(--ink);
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .sos-letter.active{ background: var(--love-pink); color:#1a0004; border-color: var(--love-pink); }
+  #scene-explosion{ background: transparent; }
+  #particles{ position:relative; width:1px; height:1px; }
+  .particle{
+    position:absolute; top:0; left:0;
+    width: 10px; height:10px;
+    border-radius: 3px;
+    animation: fly .9s cubic-bezier(.2,.8,.3,1) forwards;
+  }
+  @keyframes fly{
+    to{ transform: translate(var(--dx), var(--dy)) rotate(var(--rot)); opacity: 0; }
+  }
+  .shake{ animation: shakeAnim .5s ease; }
+  @keyframes shakeAnim{
+    0%,100%{ transform: translate(0,0); }
+    20%{ transform: translate(-8px, 4px); } 40%{ transform: translate(8px, -4px); }
+    60%{ transform: translate(-6px, -2px); } 80%{ transform: translate(6px, 2px); }
+  }
+  .final-btn-wrap{ margin-top: 4vh; }
+  .btn-final{
+    position: relative;
+    overflow: hidden;
+    width: clamp(160px, 40vw, 200px);
+    height: clamp(64px, 15vw, 76px);
+    border-radius: 999px;
+    cursor: pointer;
+    background: linear-gradient(160deg, var(--neon-white), var(--neon-blue) 55%, var(--neon-blue-dark));
+    border: 2px solid rgba(255,255,255,0.6);
+    box-shadow:
+      0 0 8px rgba(234,246,255,0.8),
+      0 0 22px rgba(126,200,255,0.55),
+      0 0 50px rgba(126,200,255,0.3);
+    touch-action: manipulation;
+    animation: neonFlickerYes 6s infinite;
+    animation-delay: .3s;
+  }
+  .btn-final:active{ transform: translateY(3px); }
+  .btn-final .cover, .btn-final .truth{
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size: 1.3rem;
+  }
+  .btn-final .cover{
+    background: linear-gradient(160deg, #ffb3ba, var(--neon-red) 55%, var(--neon-red-dark));
+    color: #1a0004;
+    text-shadow: 0 0 6px rgba(255,255,255,0.5);
+    transition: transform .5s cubic-bezier(.5,-0.2,.3,1.3), opacity .4s ease;
+    z-index: 2;
+  }
+  .btn-final .truth{ z-index:1; color:#0a0a0a; text-shadow: 0 0 6px rgba(255,255,255,0.7); }
+  .btn-final.revealed .cover{ transform: translateY(-140%) rotate(-12deg); opacity: 0; }
+  .heart-canvas{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+  .win-content{ position:relative; z-index:2; }
+  .win-content .win-emoji{ font-size: clamp(3rem, 12vw, 4.5rem); animation: pop .5s ease; filter: drop-shadow(0 0 20px rgba(255,93,158,.5)); }
+  @keyframes pop{ 0%{ transform: scale(.4); opacity:0;} 70%{ transform: scale(1.15);} 100%{ transform: scale(1); opacity:1;} }
+  .win-content h2{
+    font-family:'Baloo 2', sans-serif;
+    font-size: clamp(1.8rem, 7vw, 2.6rem);
+    margin: .3em 0 .2em;
+    color: var(--love-pink);
+    text-shadow: 0 0 22px rgba(255,93,158,0.5);
+  }
+  .win-content p{ color: var(--dim); margin: 0 0 3vh; }
+  .win-actions{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+  .btn-replay{
+    font-family:'Nunito',sans-serif;
+    font-weight:700;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.22);
+    color: var(--ink);
+    padding: .7em 1.6em;
+    border-radius: 999px;
+    cursor:pointer;
+  }
+  .confetti-piece{
+    position: fixed; top: -10px;
+    width: 8px; height: 14px;
+    z-index: 90;
+    animation: confettiFall linear forwards;
+  }
+  @keyframes confettiFall{
+    to{ transform: translateY(110vh) rotate(540deg); opacity: .9; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    #grain, #ambient-flicker, .btn-yes, .btn-no, .btn-final,
+    .adam-figure, .adam-figure .eye, .call-icon, .flame, .eq-bar,
+    #stage.solid-black #blackout-layer, #stage.solid-black-blue #blackout-layer, #stage.solid-black-warm #blackout-layer{
+      animation: none !important;
+    }
+    #stage.flicker #blackout-layer{ animation: none !important; opacity: 1; }
+  }
+</style>
+</head>
+<body>
+
+<button class="mute-btn" id="btn-mute" aria-label="toggle sound">🔊</button>
+
+<div id="stage">
+  <div id="vignette"></div>
+  <div id="grain"></div>
+  <div id="ambient-flicker"></div>
+  <div id="blackout-layer"></div>
+  <div id="sos-layer"></div>
+
+  <div class="candles-row" id="candles-fx">
+    <div class="candle"><div class="flame"></div></div>
+    <div class="candle"><div class="flame"></div></div>
+    <div class="candle"><div class="flame"></div></div>
+    <div class="candle-glow"></div>
+  </div>
+
+  <div class="fusebox" id="fusebox-fx"><div class="fuse-switch" id="fuse-switch"></div></div>
+
+  <div class="radio-fx" id="radio-fx">
+    <span class="eq-bar"></span><span class="eq-bar"></span><span class="eq-bar"></span><span class="eq-bar"></span><span class="eq-bar"></span>
+  </div>
+
+  <div class="flashlight-fx" id="flashlight-fx"></div>
+
+  <section id="scene-intro" class="scene active">
+    <h1 class="title">do you <span class="heart">love</span> me?</h1>
+    <div class="sticker-slot" id="sticker">
+      <img src="sticker.jpg" alt="sticker" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
+    </div>
+    <div class="sticker-note">(you can drop your own sticker here)</div>
+    <div class="btn-row">
+      <button id="btn-no" class="btn btn-no">NO</button>
+      <button id="btn-yes" class="btn btn-yes">YES</button>
+    </div>
+  </section>
+
+  <section id="scene-confirm" class="scene">
+    <div class="adam-figure"><span class="eye eye-left"></span><span class="eye eye-right"></span></div>
+    <p class="confirm-lead">He's not sure he heard that right.</p>
+    <div class="btn-row">
+      <button id="btn-confirm-no" class="btn btn-no">Actually, no</button>
+      <button id="btn-confirm-yes" class="btn btn-yes">Yes, really</button>
+    </div>
+  </section>
+
+  <section id="scene-blackout" class="scene">
+    <div class="adam-figure"><span class="eye eye-left"></span><span class="eye eye-right"></span></div>
+  </section>
+
+  <section id="scene-wait" class="scene">
+    <div class="adam-figure small"><span class="eye eye-left"></span><span class="eye eye-right"></span></div>
+    <div class="watch-panel">
+      <video id="cat-video" class="watch-video" src="cat-duck-shoes.mp4" muted playsinline preload="auto"></video>
+      <div class="watch-bar"><div class="watch-bar-fill" id="watch-bar-fill"></div></div>
+    </div>
+  </section>
+
+  <section id="scene-sos" class="scene">
+    <div class="adam-figure small"><span class="eye eye-left"></span><span class="eye eye-right"></span></div>
+    <div class="sos-score" id="sos-score">You 0 · Him 0</div>
+    <div class="sos-grid" id="sos-grid"></div>
+    <div class="sos-toggle">
+      <button class="sos-letter active" id="sos-letter-s" data-letter="S">S</button>
+      <button class="sos-letter" id="sos-letter-o" data-letter="O">O</button>
+    </div>
+  </section>
+
+  <section id="scene-explosion" class="scene">
+    <div id="particles"></div>
+  </section>
+
+  <section id="scene-final" class="scene">
+    <div class="adam-figure"><span class="eye eye-left"></span><span class="eye eye-right"></span></div>
+    <div class="final-btn-wrap">
+      <button id="btn-final" class="btn-final">
+        <span class="cover" id="final-cover">NO</span>
+        <span class="truth">YES</span>
+      </button>
+    </div>
+  </section>
+
+  <section id="scene-win" class="scene">
+    <canvas class="heart-canvas" id="heart-canvas"></canvas>
+    <div class="win-content">
+      <div class="win-emoji">💖</div>
+      <h2 id="win-title">yay!</h2>
+      <p id="win-caption">you just made my whole week.</p>
+      <div class="win-actions">
+        <button class="btn-replay" id="btn-certificate">save this moment</button>
+        <button class="btn-replay" id="btn-replay">play again</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div id="subtitle-bar"></div>
+
+<div id="call-card" class="call-card">
+  <div class="call-icon" id="call-icon">📞</div>
+  <div>
+    <div class="call-name" id="call-name">Electrician</div>
+    <div class="call-status" id="call-status">calling…</div>
+  </div>
+</div>
+
+<!-- Optional: drop a short "boom" mp3 here if you want one layered under the built-in synthesized explosion sound. -->
+<audio id="audio-explosion" src="audio/explosion.mp3" preload="none"></audio>
+
+<script>
+(function(){
+  const stage = document.getElementById('stage');
+  const scenes = document.querySelectorAll('.scene');
+  const btnYes = document.getElementById('btn-yes');
+  const btnNo  = document.getElementById('btn-no');
+  const btnRow = document.querySelector('#scene-intro .btn-row');
+  const btnFinal = document.getElementById('btn-final');
+  const btnReplay = document.getElementById('btn-replay');
+  const btnCertificate = document.getElementById('btn-certificate');
+  const btnMute = document.getElementById('btn-mute');
+  const btnConfirmYes = document.getElementById('btn-confirm-yes');
+  const btnConfirmNo = document.getElementById('btn-confirm-no');
+  const subtitleBar = document.getElementById('subtitle-bar');
+  const catVideo = document.getElementById('cat-video');
+  const watchBarFill = document.getElementById('watch-bar-fill');
+  const sosLayer = document.getElementById('sos-layer');
+  const callCard = document.getElementById('call-card');
+  const callIcon = document.getElementById('call-icon');
+  const callName = document.getElementById('call-name');
+  const callStatus = document.getElementById('call-status');
+  const candlesFx = document.getElementById('candles-fx');
+  const fuseboxFx = document.getElementById('fusebox-fx');
+  const fuseSwitch = document.getElementById('fuse-switch');
+  const radioFx = document.getElementById('radio-fx');
+  const flashlightFx = document.getElementById('flashlight-fx');
+  const stickerEl = document.getElementById('sticker');
+
+  const REDUCE_MOTION = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const FLICKER_MS = 1600;
+
+  let noCount = 0;
+  let evadeAttempts = 0;
+  let evasiveMode = false;
+  let yesConfirmUsed = false;
+  let sequence = [];
+
+  function vibe(pattern){
+    try{ if(navigator.vibrate) navigator.vibrate(pattern); }catch(e){}
+  }
+
+  function afterPause(ms, fn){ setTimeout(fn, ms); }
+
+  function shuffle(arr){
+    for(let i = arr.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  /* =========================================================
+     Sound2: a tiny synthesized music/SFX engine (no audio files at all).
+     Everything here is generated in real time with the Web Audio API.
+  ========================================================= */
+  const Sound2 = (function(){
+    let ctx = null, master = null, muted = false;
+    let droneGain = null, droneNodes = [];
+
+    function ensure(){
+      if(ctx) return true;
+      try{
+        ctx = new (window.AudioContext || window.webkitAudioContext)();
+        master = ctx.createGain();
+        master.gain.value = muted ? 0 : 0.32;
+        master.connect(ctx.destination);
+        return true;
+      }catch(e){ return false; }
+    }
+
+    function setMuted(m){
+      muted = m;
+      if(ctx && master) master.gain.setTargetAtTime(muted ? 0 : 0.32, ctx.currentTime, 0.12);
+    }
+
+    const MOODS = {
+      calm:  { freqs:[130.81, 196.00], type:'triangle', filter:900,  lfo:0 },
+      tense: { freqs:[110.00, 116.54], type:'sawtooth', filter:420,  lfo:0.35 },
+      warm:  { freqs:[164.81, 207.65, 261.63], type:'sine', filter:1300, lfo:0 }
+    };
+
+    function stopDrone(fadeMs){
+      if(!ctx || !droneGain) return;
+      const g = droneGain, nodes = droneNodes;
+      const now = ctx.currentTime;
+      g.gain.setTargetAtTime(0, now, (fadeMs || 600) / 1000 / 3);
+      setTimeout(() => { nodes.forEach(n => { try{ n.osc.stop(); }catch(e){} }); }, (fadeMs || 600) + 150);
+      droneGain = null; droneNodes = [];
+    }
+
+    function setMood(mood){
+      if(!ensure()) return;
+      if(mood === 'none'){ stopDrone(800); return; }
+      const preset = MOODS[mood];
+      if(!preset) return;
+      stopDrone(700);
+      const now = ctx.currentTime;
+      const g = ctx.createGain();
+      g.gain.value = 0;
+      g.connect(master);
+      const nodes = [];
+      preset.freqs.forEach(f => {
+        const osc = ctx.createOscillator();
+        osc.type = preset.type;
+        osc.frequency.value = f;
+        const filt = ctx.createBiquadFilter();
+        filt.type = 'lowpass';
+        filt.frequency.value = preset.filter;
+        osc.connect(filt);
+        filt.connect(g);
+        osc.start();
+        nodes.push({osc: osc, filt: filt});
+      });
+      if(preset.lfo){
+        const lfo = ctx.createOscillator();
+        lfo.frequency.value = preset.lfo;
+        const lfoGain = ctx.createGain();
+        lfoGain.gain.value = 110;
+        lfo.connect(lfoGain);
+        nodes.forEach(n => { if(n.filt) lfoGain.connect(n.filt.frequency); });
+        lfo.start();
+        nodes.push({osc: lfo, filt: null});
+      }
+      g.gain.setTargetAtTime(0.45, now, 0.6);
+      droneGain = g; droneNodes = nodes;
+    }
+
+    function sfx(type){
+      if(!ensure() || muted) return;
+      const now = ctx.currentTime;
+      if(type === 'click'){
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = 'sine'; o.frequency.value = 740;
+        g.gain.value = 0.15;
+        g.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+        o.connect(g); g.connect(master);
+        o.start(now); o.stop(now + 0.09);
+      } else if(type === 'evade'){
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = 'square';
+        o.frequency.setValueAtTime(520, now);
+        o.frequency.exponentialRampToValueAtTime(220, now + 0.15);
+        g.gain.value = 0.12;
+        g.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+        o.connect(g); g.connect(master);
+        o.start(now); o.stop(now + 0.17);
+      } else if(type === 'spark'){
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = 'square';
+        o.frequency.setValueAtTime(1800, now);
+        o.frequency.exponentialRampToValueAtTime(400, now + 0.1);
+        g.gain.value = 0.1;
+        g.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+        o.connect(g); g.connect(master);
+        o.start(now); o.stop(now + 0.13);
+      } else if(type === 'zap'){
+        const bufferSize = Math.floor(ctx.sampleRate * 0.4);
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for(let i = 0; i < bufferSize; i++){ data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize); }
+        const noise = ctx.createBufferSource();
+        noise.buffer = buffer;
+        const filt = ctx.createBiquadFilter();
+        filt.type = 'lowpass';
+        filt.frequency.setValueAtTime(2200, now);
+        filt.frequency.exponentialRampToValueAtTime(120, now + 0.4);
+        const g = ctx.createGain();
+        g.gain.value = 0.5;
+        g.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+        noise.connect(filt); filt.connect(g); g.connect(master);
+        noise.start(now);
+      } else if(type === 'chime'){
+        [523.25, 659.25, 783.99].forEach((f, i) => {
+          const o = ctx.createOscillator(), g = ctx.createGain();
+          o.type = 'sine'; o.frequency.value = f;
+          const t0 = now + i * 0.12;
+          g.gain.value = 0;
+          g.gain.setTargetAtTime(0.2, t0, 0.02);
+          g.gain.setTargetAtTime(0, t0 + 0.25, 0.15);
+          o.connect(g); g.connect(master);
+          o.start(t0); o.stop(t0 + 0.6);
+        });
+      }
+    }
+
+    return {
+      ensure: ensure,
+      setMood: setMood,
+      sfx: sfx,
+      setMuted: setMuted,
+      isMuted: function(){ return muted; }
+    };
+  })();
+
+  btnMute.addEventListener('click', () => {
+    const next = !Sound2.isMuted();
+    Sound2.setMuted(next);
+    Sound2.ensure();
+    btnMute.textContent = next ? '🔇' : '🔊';
+  });
+
+  function buildSequence(){
+    const rest = shuffle([
+      'classic-fix', 'wrong-wire', 'disco', 'phone-call',
+      'candles', 'power-hold', 'fusebox', 'neighbor', 'radio', 'flashlight', 'ghost'
+    ]);
+    const picks = rest.slice(0, 3);
+    sequence = ['video-watch', 'sos'].concat(picks); // cat video first, SOS game always second, rest shuffled
+  }
+  buildSequence();
+
+  function showScene(id){
+    scenes.forEach(s => s.classList.toggle('active', s.id === id));
+    if(id === 'scene-intro') restoreTitle();
+  }
+
+  function playAudio(id){
+    const el = document.getElementById(id);
+    if(!el) return;
+    try{ el.currentTime = 0; el.play().catch(()=>{}); }catch(e){}
+  }
+
+  function spawnSparks(x, y, count){
+    x = (x === undefined) ? window.innerWidth / 2 : x;
+    y = (y === undefined) ? window.innerHeight * 0.18 : y;
+    count = count || 9;
+    Sound2.sfx('spark');
+    const colors = ['#fff6c8', '#ffd23f', '#ffb347'];
+    for(let i = 0; i < count; i++){
+      const p = document.createElement('div');
+      p.className = 'particle';
+      const ang = Math.random() * Math.PI * 2;
+      const dist = 26 + Math.random() * 60;
+      p.style.setProperty('--dx', (Math.cos(ang) * dist) + 'px');
+      p.style.setProperty('--dy', (Math.sin(ang) * dist - 16) + 'px');
+      p.style.setProperty('--rot', (Math.random() * 360) + 'deg');
+      p.style.background = colors[i % colors.length];
+      p.style.width = '5px';
+      p.style.height = '5px';
+      p.style.position = 'fixed';
+      p.style.zIndex = '92';
+      p.style.left = x + 'px';
+      p.style.top = y + 'px';
+      document.body.appendChild(p);
+      setTimeout(() => p.remove(), 900);
+    }
+  }
+
+  /* ---------- red eyes that track your finger/cursor, and tilt on phones that allow it ---------- */
+  let pointerX = window.innerWidth / 2;
+  let pointerY = window.innerHeight / 2;
+  let useTilt = false;
+
+  function updateEyes(){
+    document.querySelectorAll('.adam-figure').forEach(fig => {
+      const rect = fig.getBoundingClientRect();
+      if(!rect.width) return;
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const dx = Math.max(-2.6, Math.min(2.6, (pointerX - cx) / 22));
+      const dy = Math.max(-2.6, Math.min(2.6, (pointerY - cy) / 22));
+      fig.querySelectorAll('.eye').forEach(eye => {
+        eye.style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
+      });
+    });
+  }
+  window.addEventListener('pointermove', e => {
+    if(useTilt) return;
+    pointerX = e.clientX; pointerY = e.clientY; updateEyes();
+  });
+  window.addEventListener('touchmove', e => {
+    if(useTilt || !e.touches[0]) return;
+    pointerX = e.touches[0].clientX; pointerY = e.touches[0].clientY; updateEyes();
+  }, {passive:true});
+
+  function handleOrientation(e){
+    if(e.gamma === null || e.gamma === undefined) return;
+    useTilt = true;
+    const gx = Math.max(-30, Math.min(30, e.gamma));
+    const by = Math.max(-30, Math.min(30, (e.beta || 45) - 45));
+    const dx = (gx / 30) * 2.6;
+    const dy = (by / 30) * 2.6;
+    document.querySelectorAll('.adam-figure .eye').forEach(eye => {
+      eye.style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
+    });
+  }
+  function requestTilt(){
+    if(typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function'){
+      DeviceOrientationEvent.requestPermission().then(state => {
+        if(state === 'granted') window.addEventListener('deviceorientation', handleOrientation);
+      }).catch(() => {});
+    } else if('DeviceOrientationEvent' in window){
+      window.addEventListener('deviceorientation', handleOrientation);
+    }
+  }
+
+  /* ---------- text-to-speech, built into the browser, no files or services needed ---------- */
+  let chosenVoice = null;
+  function pickVoice(){
+    if(!('speechSynthesis' in window)) return;
+    const voices = speechSynthesis.getVoices();
+    if(!voices.length) return;
+    const preferred = ['Google UK English Male','Microsoft David','Daniel','Alex','Fred','Microsoft Mark','Google US English'];
+    for(const name of preferred){
+      const v = voices.find(v => v.name.includes(name));
+      if(v){ chosenVoice = v; return; }
+    }
+    chosenVoice = voices.find(v => v.lang && v.lang.startsWith('en')) || voices[0];
+  }
+  if('speechSynthesis' in window){
+    pickVoice();
+    speechSynthesis.onvoiceschanged = pickVoice;
+  }
+  document.addEventListener('pointerdown', function unlock(){
+    if('speechSynthesis' in window){
+      try{
+        const u = new SpeechSynthesisUtterance(' ');
+        u.volume = 0;
+        speechSynthesis.speak(u);
+      }catch(e){}
+    }
+    Sound2.ensure();
+    Sound2.setMood('calm');
+    requestTilt();
+    document.removeEventListener('pointerdown', unlock);
+  }, {once:true});
+
+  function speakLine(text, onDone){
+    if(!('speechSynthesis' in window)){
+      if(onDone) setTimeout(onDone, Math.min(Math.max(text.length * 70, 1400), 3800));
+      return;
+    }
+    try{
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      if(chosenVoice) u.voice = chosenVoice;
+      u.rate = 0.78;
+      u.pitch = 0.75;
+      u.volume = 1;
+      let done = false;
+      const READ_PAUSE = 1200;
+      const finish = () => { if(done) return; done = true; if(onDone) onDone(); };
+      u.onend = () => setTimeout(finish, READ_PAUSE);
+      u.onerror = finish;
+      setTimeout(finish, Math.min(Math.max(text.length * 65, 1400), 3600) + READ_PAUSE);
+      speechSynthesis.speak(u);
+    }catch(e){
+      if(onDone) onDone();
+    }
+  }
+
+  function showSubtitle(text, cb, persist){
+    subtitleBar.classList.remove('show');
+    void subtitleBar.offsetWidth;
+    subtitleBar.textContent = text;
+    requestAnimationFrame(() => subtitleBar.classList.add('show'));
+    speakLine(text, () => {
+      if(!persist) subtitleBar.classList.remove('show');
+      if(cb){
+        if(persist) cb();
+        else setTimeout(cb, 550); // a settle beat before the next thing happens
+      }
+    });
+  }
+  function hideSubtitle(){ subtitleBar.classList.remove('show'); }
+
+  /* ---------- the title can "lose power" letter by letter, like a neon sign ---------- */
+  let titleLetters = [];
+  function shatterTitle(){
+    const titleEl = document.querySelector('.title');
+    if(!titleEl) return;
+    const parts = [
+      { text: 'do you ', heart: false },
+      { text: 'love', heart: true },
+      { text: ' me?', heart: false }
+    ];
+    titleEl.innerHTML = '';
+    parts.forEach(part => {
+      part.text.split('').forEach(ch => {
+        const span = document.createElement('span');
+        span.className = 'letter' + (part.heart ? ' heart' : '');
+        span.textContent = ch === ' ' ? '\u00A0' : ch;
+        titleEl.appendChild(span);
+        titleLetters.push(span);
+      });
+    });
+  }
+  shatterTitle();
+
+  function restoreTitle(){
+    titleLetters.forEach(l => { l.style.opacity = ''; });
+    btnYes.style.opacity = '';
+    btnNo.style.opacity = '';
+  }
+
+  function powerDownLetters(cb){
+    if(REDUCE_MOTION || !titleLetters.length){ cb(); return; }
+    let i = 0;
+    const stepMs = 65;
+    function step(){
+      if(i < titleLetters.length){
+        titleLetters[i].style.opacity = '0.1';
+        i++;
+        setTimeout(step, stepMs);
+      } else {
+        btnYes.style.transition = 'opacity .4s ease';
+        btnNo.style.transition = 'opacity .4s ease';
+        btnYes.style.opacity = '0.15';
+        btnNo.style.opacity = '0.15';
+        setTimeout(cb, 450);
+      }
+    }
+    step();
+  }
+
+  function pickBlackoutStyle(){
+    const r = Math.random();
+    if(r < 0.4) return 'flicker';
+    if(r < 0.7) return 'fade';
+    return 'letters';
+  }
+
+  function blackout(holdMs, cb, variant){
+    variant = variant || 'solid-black';
+    Sound2.setMood('tense');
+    const style = pickBlackoutStyle();
+    const finishToSolid = () => {
+      stage.classList.add(variant);
+      setTimeout(() => {
+        stage.classList.remove(variant);
+        cb();
+      }, holdMs);
+    };
+    if(style === 'letters'){
+      afterPause(300, () => {
+        powerDownLetters(() => {
+          stage.classList.add('shake');
+          spawnSparks();
+          setTimeout(() => stage.classList.remove('shake'), 450);
+          stage.classList.add('fade-to-black');
+          setTimeout(() => {
+            stage.classList.remove('fade-to-black');
+            finishToSolid();
+          }, 650);
+        });
+      });
+    } else if(style === 'fade'){
+      afterPause(300, () => {
+        stage.classList.add('fade-to-black');
+        setTimeout(() => {
+          stage.classList.remove('fade-to-black');
+          stage.classList.add('shake');
+          spawnSparks();
+          setTimeout(() => stage.classList.remove('shake'), 450);
+          finishToSolid();
+        }, 1500);
+      });
+    } else {
+      afterPause(300, () => {
+        stage.classList.add('flicker', 'shake');
+        spawnSparks();
+        setTimeout(() => stage.classList.remove('shake'), 450);
+        setTimeout(() => {
+          stage.classList.remove('flicker');
+          finishToSolid();
+        }, FLICKER_MS);
+      });
+    }
+  }
+
+  /* ---------- YES: first press makes him suspicious, second press really wins ---------- */
+  function winDirect(){
+    document.getElementById('win-title').textContent = 'yay!';
+    document.getElementById('win-caption').textContent = 'you just made my whole week.';
+    showScene('scene-win');
+    burstConfetti();
+    startHeartFinale();
+    Sound2.sfx('chime');
+    afterPause(1200, () => Sound2.setMood('none'));
+    vibe([30,20,30]);
+  }
+
+  btnYes.addEventListener('click', () => {
+    Sound2.sfx('click');
+    if(!yesConfirmUsed){
+      yesConfirmUsed = true;
+      showScene('scene-confirm');
+      showSubtitle("Wait, really? You mean it?");
+      return;
+    }
+    winDirect();
+  });
+
+  btnConfirmYes.addEventListener('click', () => {
+    Sound2.sfx('click');
+    hideSubtitle();
+    winDirect();
+  });
+
+  btnConfirmNo.addEventListener('click', () => {
+    Sound2.sfx('click');
+    hideSubtitle();
+    showScene('scene-intro');
+    btnNo.click();
+  });
+
+  /* ---------- NO: a randomized run of excuses, then the button makes a run for it ---------- */
+  btnNo.addEventListener('click', () => {
+    Sound2.sfx('click');
+    if(evasiveMode){ handleEvade(); return; }
+    noCount++;
+    const id = sequence[noCount - 1];
+    if(!id) return;
+    runExcuse(id, noCount === sequence.length);
+  });
+
+  function runExcuse(id, isLast){
+    const proceed = () => {
+      showScene('scene-intro');
+      if(isLast) afterPause(1000, armEvasive);
+      else Sound2.setMood('calm');
+    };
+    if(id === 'classic-fix') excuseClassicFix(proceed);
+    else if(id === 'wrong-wire') excuseWrongWire(proceed);
+    else if(id === 'sos') excuseSOS(proceed);
+    else if(id === 'disco') excuseDisco(proceed);
+    else if(id === 'phone-call') excusePhoneCall(proceed);
+    else if(id === 'candles') excuseCandles(proceed);
+    else if(id === 'power-hold') excusePowerHold(proceed);
+    else if(id === 'fusebox') excuseFusebox(proceed);
+    else if(id === 'neighbor') excuseNeighbor(proceed);
+    else if(id === 'radio') excuseRadio(proceed);
+    else if(id === 'flashlight') excuseFlashlight(proceed);
+    else if(id === 'ghost') excuseGhost(proceed);
+    else if(id === 'video-watch') excuseVideoWatch(proceed);
+    else proceed();
+  }
+
+  function excuseClassicFix(proceed){
+    blackout(850, () => {
+      showScene('scene-blackout');
+      showSubtitle("Whoa, the power's out. Hang on, I'm fixing it.", proceed);
+    });
+  }
+
+  function excuseWrongWire(proceed){
+    blackout(850, () => {
+      showScene('scene-blackout');
+      showSubtitle("Hmm, wrong wire. Let me try again.", () => {
+        afterPause(650, () => showSubtitle("There. Better?", proceed));
+      });
+    }, 'solid-black-blue');
+  }
+
+  function excuseCandles(proceed){
+    blackout(950, () => {
+      showScene('scene-blackout');
+      candlesFx.classList.add('show');
+      Sound2.setMood('warm');
+      showSubtitle("No lights, but I found candles. Almost feels like I planned this.", () => {
+        candlesFx.classList.remove('show');
+        proceed();
+      });
+    }, 'solid-black-warm');
+  }
+
+  function excuseFusebox(proceed){
+    blackout(850, () => {
+      showScene('scene-blackout');
+      fuseboxFx.classList.add('show');
+      afterPause(300, () => {
+        fuseSwitch.classList.add('flip');
+        spawnSparks(window.innerWidth / 2, window.innerHeight * 0.62, 7);
+      });
+      showSubtitle("Found it — wait, no, that's the doorbell.", () => {
+        fuseboxFx.classList.remove('show');
+        fuseSwitch.classList.remove('flip');
+        proceed();
+      });
+    });
+  }
+
+  function excuseRadio(proceed){
+    blackout(850, () => {
+      showScene('scene-blackout');
+      radioFx.classList.remove('static');
+      radioFx.classList.add('show');
+      showSubtitle("Found the radio. Let's see...", () => {
+        radioFx.classList.add('static');
+        afterPause(500, () => {
+          showSubtitle("...just static. Never mind.", () => {
+            radioFx.classList.remove('show', 'static');
+            proceed();
+          });
+        });
+      });
+    });
+  }
+
+  function excuseFlashlight(proceed){
+    blackout(850, () => {
+      showScene('scene-blackout');
+      flashlightFx.classList.add('show');
+      showSubtitle("Hold on, I've got a light... here!", () => {
+        afterPause(600, () => {
+          flashlightFx.classList.remove('show');
+          showSubtitle("...1% battery. Of course.", proceed);
+        });
+      });
+    });
+  }
+
+  function excuseGhost(proceed){
+    blackout(950, () => {
+      showScene('scene-blackout');
+      showSubtitle("Wait — did you hear that?", () => {
+        stage.classList.add('shake');
+        setTimeout(() => stage.classList.remove('shake'), 500);
+        afterPause(750, () => {
+          showSubtitle("...never mind. Probably the cat.", proceed);
+        });
+      });
+    });
+  }
+
+  function excuseVideoWatch(proceed){
+    blackout(850, () => {
+      showScene('scene-blackout');
+      showSubtitle("Not buying it? Fine, watch this.", () => {
+        startCatVideo(proceed);
+      });
+    });
+  }
+
+  function startCatVideo(proceed){
+    showScene('scene-wait');
+    watchBarFill.style.width = '0%';
+    catVideo.currentTime = 0;
+    catVideo.onended = () => {
+      showSubtitle("See? Told you.", proceed);
+    };
+    catVideo.ontimeupdate = () => {
+      if(catVideo.duration){
+        watchBarFill.style.width = (catVideo.currentTime / catVideo.duration * 100) + '%';
+      }
+    };
+    catVideo.play().catch(() => {
+      setTimeout(() => catVideo.onended(), 4000);
+    });
+  }
+
+  /* ---------- SOS: a quick teaser Morse flash, then the actual pencil-and-paper SOS game ---------- */
+  function excuseSOS(proceed){
+    stage.classList.add('flicker');
+    Sound2.setMood('tense');
+    setTimeout(() => {
+      stage.classList.remove('flicker');
+      showScene('scene-blackout');
+      playMorseSOS(() => {
+        afterPause(500, () => excuseSOSGame(proceed));
+      });
+    }, FLICKER_MS);
+  }
+
+  function playMorseSOS(onDone){
+    if(REDUCE_MOTION){ onDone(); return; }
+    sosLayer.style.background = '#fff6da';
+    const unit = 190;
+    const seq = [
+      [1,1],[0,1],[1,1],[0,1],[1,1],[0,3],
+      [1,3],[0,1],[1,3],[0,1],[1,3],[0,3],
+      [1,1],[0,1],[1,1],[0,1],[1,1],[0,1]
+    ];
+    let i = 0;
+    function step(){
+      if(i >= seq.length){ sosLayer.style.opacity = '0'; onDone(); return; }
+      const pair = seq[i]; i++;
+      sosLayer.style.opacity = pair[0] ? '0.85' : '0';
+      setTimeout(step, pair[1] * unit);
+    }
+    step();
+  }
+
+  let sosBoard = [];
+  let sosPlayerLetter = 'S';
+  let sosPlayerScore = 0;
+  let sosAdamScore = 0;
+  let sosLocked = false;
+  let sosProceedCb = null;
+  let sosPlayerFirstScoreSaid = false;
+  let sosAdamFirstScoreSaid = false;
+
+  function excuseSOSGame(proceed){
+    sosProceedCb = proceed;
+    sosBoard = new Array(16).fill(null);
+    sosPlayerLetter = 'S';
+    sosPlayerScore = 0; sosAdamScore = 0;
+    sosPlayerFirstScoreSaid = false;
+    sosAdamFirstScoreSaid = false;
+    setSOSLock(false);
+    document.getElementById('sos-letter-s').classList.add('active');
+    document.getElementById('sos-letter-o').classList.remove('active');
+    updateSOSScore();
+    renderSOSGrid();
+    showScene('scene-sos');
+    showSubtitle("Let's play a quick game while I fix this.");
+  }
+
+  function setSOSLock(state){
+    sosLocked = state;
+    const g = document.getElementById('sos-grid');
+    if(g) g.classList.toggle('locked', state);
+  }
+
+  function updateSOSScore(){
+    document.getElementById('sos-score').textContent = 'You ' + sosPlayerScore + ' · Him ' + sosAdamScore;
+  }
+
+  function renderSOSGrid(){
+    const grid = document.getElementById('sos-grid');
+    grid.innerHTML = '';
+    sosBoard.forEach((val, i) => {
+      const cell = document.createElement('button');
+      cell.className = 'sos-cell' + (val ? ' filled' : '');
+      cell.textContent = val || '';
+      cell.addEventListener('click', () => onSOSCellClick(i));
+      grid.appendChild(cell);
+    });
+  }
+
+  document.getElementById('sos-letter-s').addEventListener('click', () => setSOSLetter('S'));
+  document.getElementById('sos-letter-o').addEventListener('click', () => setSOSLetter('O'));
+  function setSOSLetter(letter){
+    sosPlayerLetter = letter;
+    document.getElementById('sos-letter-s').classList.toggle('active', letter === 'S');
+    document.getElementById('sos-letter-o').classList.toggle('active', letter === 'O');
+  }
+
+  function onSOSCellClick(i){
+    if(sosLocked || sosBoard[i]) return;
+    Sound2.sfx('click');
+    placeSOSLetter(i, sosPlayerLetter, 'player');
+  }
+
+  function findSOSMatches(board, idx){
+    const matches = [];
+    const row = Math.floor(idx / 4), col = idx % 4;
+    const dirs = [[0,1],[1,0],[1,1],[1,-1]];
+    dirs.forEach(dir => {
+      const dr = dir[0], dc = dir[1];
+      for(let start = -2; start <= 0; start++){
+        const cells = [0,1,2].map(k => {
+          const r = row + dr * (start + k);
+          const c = col + dc * (start + k);
+          if(r < 0 || r > 3 || c < 0 || c > 3) return null;
+          return r * 4 + c;
+        });
+        if(cells.includes(null) || !cells.includes(idx)) continue;
+        const letters = cells.map(c => board[c]).join('');
+        if(letters === 'SOS') matches.push(cells);
+      }
+    });
+    const seen = new Set();
+    const uniq = [];
+    matches.forEach(m => {
+      const key = m.slice().sort((a,b) => a - b).join(',');
+      if(!seen.has(key)){ seen.add(key); uniq.push(m); }
+    });
+    return uniq;
+  }
+
+  function placeSOSLetter(idx, letter, who){
+    sosBoard[idx] = letter;
+    renderSOSGrid();
+    const matches = findSOSMatches(sosBoard, idx);
+    if(matches.length){
+      matches.forEach(cells => {
+        cells.forEach(c => {
+          const cellEl = document.getElementById('sos-grid').children[c];
+          if(cellEl) cellEl.classList.add(who === 'player' ? 'match-player' : 'match-adam');
+        });
+      });
+      if(who === 'player') sosPlayerScore += matches.length; else sosAdamScore += matches.length;
+      updateSOSScore();
+      Sound2.sfx('spark');
+      if(who === 'player' && !sosPlayerFirstScoreSaid){
+        sosPlayerFirstScoreSaid = true;
+        showSubtitle("Wait, since when are you good at this?");
+      } else if(who === 'adam' && !sosAdamFirstScoreSaid){
+        sosAdamFirstScoreSaid = true;
+        showSubtitle("Ha, called it.");
+      }
+    }
+    if(sosBoard.every(v => v)){
+      finishSOSGame();
+      return;
+    }
+    if(who === 'player'){
+      if(!matches.length){
+        setSOSLock(true);
+        setTimeout(() => { adamSOSTurn(); }, 1150);
+      }
+    } else {
+      if(matches.length){
+        setSOSLock(true);
+        setTimeout(() => { adamSOSTurn(); }, 1150);
+      } else {
+        setSOSLock(false);
+      }
+    }
+  }
+
+  function findBestSOSMove(){
+    const empties = sosBoard.map((v,i) => v ? null : i).filter(v => v !== null);
+    for(const idx of empties){
+      for(const letter of ['S','O']){
+        const trial = sosBoard.slice();
+        trial[idx] = letter;
+        if(findSOSMatches(trial, idx).length) return {idx: idx, letter: letter};
+      }
+    }
+    return null;
+  }
+
+  function adamSOSTurn(){
+    if(sosBoard.every(v => v)){ finishSOSGame(); return; }
+    let best = findBestSOSMove();
+    if(!best){
+      const empties = sosBoard.map((v,i) => v ? null : i).filter(v => v !== null);
+      const idx = empties[Math.floor(Math.random() * empties.length)];
+      const letter = Math.random() < 0.5 ? 'S' : 'O';
+      best = {idx: idx, letter: letter};
+    }
+    placeSOSLetter(best.idx, best.letter, 'adam');
+  }
+
+  function finishSOSGame(){
+    let line;
+    if(sosPlayerScore > sosAdamScore) line = "Wait, you actually beat me at this too?";
+    else if(sosPlayerScore < sosAdamScore) line = "Ha, I win this round at least.";
+    else line = "A tie? Fine, I'll allow it.";
+    afterPause(700, () => {
+      showSubtitle(line, () => {
+        if(sosProceedCb) sosProceedCb();
+      });
+    });
+  }
+
+  /* ---------- disco strobe (kept slow and short on purpose) ---------- */
+  function excuseDisco(proceed){
+    stage.classList.add('flicker');
+    Sound2.setMood('tense');
+    setTimeout(() => {
+      stage.classList.remove('flicker');
+      showScene('scene-blackout');
+      playDiscoStrobe(() => {
+        showSubtitle("Wrong switch — that one's the disco breaker.", proceed);
+      });
+    }, FLICKER_MS);
+  }
+
+  function playDiscoStrobe(onDone){
+    if(REDUCE_MOTION){ onDone(); return; }
+    const colors = ['#ff2d4d', '#7ec8ff', '#ff5d9e', '#4de37a', '#ffd23f'];
+    let i = 0;
+    const iv = setInterval(() => {
+      sosLayer.style.background = colors[i % colors.length];
+      sosLayer.style.opacity = (i % 2 === 0) ? '0.8' : '0.1';
+      i++;
+      if(i > 6){
+        clearInterval(iv);
+        sosLayer.style.opacity = '0';
+        sosLayer.style.background = '#fff6da';
+        onDone();
+      }
+    }, 650);
+  }
+
+  function excusePhoneCall(proceed){
+    blackout(700, () => {
+      showScene('scene-blackout');
+      showCallCard(() => {
+        showSubtitle("Hey, yeah, almost done. Two minutes!", () => {
+          hideCallCard();
+          proceed();
+        });
+      });
+    });
+  }
+
+  function excusePowerHold(proceed){
+    blackout(850, () => {
+      showScene('scene-blackout');
+      showCallCard(() => {
+        showSubtitle("Forget it, I'll fix it myself.", () => {
+          hideCallCard();
+          proceed();
+        });
+      }, {name: 'Power Company', status: 'you are caller number 47…', connectedStatus: 'hold music intensifies', holdMs: 2000, icon: '📟'});
+    });
+  }
+
+  function excuseNeighbor(proceed){
+    blackout(700, () => {
+      showScene('scene-blackout');
+      showCallCard(() => {
+        showSubtitle("Someone's at the door... wrong apartment.", () => {
+          hideCallCard();
+          proceed();
+        });
+      }, {name: 'Someone knocked', status: 'knock knock…', connectedStatus: 'checking…', holdMs: 1700, icon: '🚪'});
+    });
+  }
+
+  function showCallCard(onConnected, opts){
+    opts = opts || {};
+    callIcon.textContent = opts.icon || '📞';
+    callName.textContent = opts.name || 'Electrician';
+    callStatus.textContent = opts.status || 'calling…';
+    callCard.classList.add('show');
+    setTimeout(() => {
+      callStatus.textContent = opts.connectedStatus || 'connected';
+      onConnected();
+    }, opts.holdMs || 1500);
+  }
+  function hideCallCard(){
+    callCard.classList.remove('show');
+  }
+
+  /* ---------- evasive NO button ---------- */
+  const CHASE_TAUNTS = ["Nice try!", "Too slow!", "Almost had me!", "Not today!"];
+
+  function armEvasive(){
+    evasiveMode = true;
+    evadeAttempts = 0;
+    Sound2.setMood('tense');
+    btnNo.classList.add('evasive-armed');
+    positionNoInPlace();
+    showSubtitle("Catch me if you can!");
+    btnNo.addEventListener('pointerenter', handleEvade);
+    btnNo.addEventListener('touchstart', handleEvadeTouch, {passive:false});
+  }
+
+  function positionNoInPlace(){
+    const r = btnRow.getBoundingClientRect();
+    btnNo.style.left = (r.left + r.width * 0.68) + 'px';
+    btnNo.style.top = r.top + 'px';
+  }
+
+  function handleEvadeTouch(e){
+    e.preventDefault();
+    handleEvade();
+  }
+
+  function handleEvade(){
+    if(!evasiveMode) return;
+    evadeAttempts++;
+    vibe(25);
+    Sound2.sfx('evade');
+    if(evadeAttempts >= 3){ collideAndExplode(); return; }
+    showSubtitle(CHASE_TAUNTS[Math.floor(Math.random() * CHASE_TAUNTS.length)]);
+    const bw = btnNo.offsetWidth || 120;
+    const bh = btnNo.offsetHeight || 60;
+    const maxX = Math.max(window.innerWidth - bw - 20, 20);
+    const maxY = Math.max(window.innerHeight - bh - 20, 20);
+    btnNo.style.transition = 'left .28s ease, top .28s ease';
+    btnNo.style.left = (Math.random() * maxX) + 'px';
+    btnNo.style.top = (Math.random() * maxY) + 'px';
+  }
+
+  function collideAndExplode(){
+    evasiveMode = false;
+    btnNo.removeEventListener('pointerenter', handleEvade);
+    btnNo.removeEventListener('touchstart', handleEvadeTouch);
+    const yesRect = btnYes.getBoundingClientRect();
+    btnNo.style.transition = 'left .55s cubic-bezier(.6,0,.9,.4), top .55s cubic-bezier(.6,0,.9,.4)';
+    btnNo.style.left = yesRect.left + 'px';
+    btnNo.style.top = yesRect.top + 'px';
+    setTimeout(() => {
+      showScene('scene-explosion');
+      stage.classList.add('shake');
+      spawnParticles();
+      playAudio('audio-explosion');
+      Sound2.sfx('zap');
+      vibe([80,40,120]);
+      setTimeout(() => {
+        stage.classList.remove('shake');
+        showScene('scene-final');
+        Sound2.setMood('warm');
+        showSubtitle("Okay, I give up. I made this just for you. Go ahead, try it.", null, true);
+      }, 1700);
+    }, 580);
+  }
+
+  function spawnParticles(){
+    const wrap = document.getElementById('particles');
+    wrap.innerHTML = '';
+    const colors = ['#ff2d4d', '#eaf6ff', '#7ec8ff', '#ff5d9e'];
+    for(let i = 0; i < 26; i++){
+      const p = document.createElement('div');
+      p.className = 'particle';
+      const ang = Math.random() * Math.PI * 2;
+      const dist = 80 + Math.random() * 160;
+      p.style.setProperty('--dx', Math.cos(ang) * dist + 'px');
+      p.style.setProperty('--dy', Math.sin(ang) * dist + 'px');
+      p.style.setProperty('--rot', (Math.random()*360) + 'deg');
+      p.style.background = colors[i % colors.length];
+      p.style.left = '50vw';
+      p.style.top = '50vh';
+      wrap.appendChild(p);
+    }
+  }
+
+  btnFinal.addEventListener('click', () => {
+    if(btnFinal.classList.contains('revealed')) return;
+    btnFinal.classList.add('revealed');
+    Sound2.sfx('chime');
+    vibe(40);
+    setTimeout(() => {
+      showSubtitle("I knew you'd pick this one. I really do love you.", () => {
+        document.getElementById('win-title').textContent = 'there it is.';
+        document.getElementById('win-caption').textContent = "that's exactly what I was hoping for.";
+        showScene('scene-win');
+        burstConfetti();
+        startHeartFinale();
+        afterPause(1200, () => Sound2.setMood('none'));
+      });
+    }, 500);
+  });
+
+  function burstConfetti(){
+    const colors = ['#ff5d9e', '#eaf6ff', '#7ec8ff', '#ff2d4d'];
+    for(let i = 0; i < 40; i++){
+      const c = document.createElement('div');
+      c.className = 'confetti-piece';
+      c.style.left = Math.random() * 100 + 'vw';
+      c.style.background = colors[i % colors.length];
+      c.style.animationDuration = (2 + Math.random() * 1.5) + 's';
+      c.style.animationDelay = (Math.random() * 0.4) + 's';
+      document.body.appendChild(c);
+      setTimeout(() => c.remove(), 4000);
+    }
+  }
+
+  /* ---------- heart-shaped particle finale, drawn on canvas ---------- */
+  let heartCanvas = null, heartCtx = null, heartParticles = [], heartAnimId = null;
+
+  function heartPoint(t, scale, cx, cy){
+    const x = 16 * Math.pow(Math.sin(t), 3);
+    const y = 13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t);
+    return { x: cx + x * scale, y: cy - y * scale };
+  }
+
+  function startHeartFinale(){
+    if(REDUCE_MOTION) return;
+    heartCanvas = document.getElementById('heart-canvas');
+    if(!heartCanvas) return;
+    heartCtx = heartCanvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    heartCanvas.width = heartCanvas.clientWidth * dpr;
+    heartCanvas.height = heartCanvas.clientHeight * dpr;
+    const W = heartCanvas.width, H = heartCanvas.height;
+    const cx = W / 2, cy = H / 2 - 10 * dpr;
+    const scale = Math.min(W, H) / 34;
+    const N = 80;
+    const colors = ['#ff5d9e', '#ff2d4d', '#eaf6ff', '#7ec8ff'];
+    heartParticles = [];
+    for(let i = 0; i < N; i++){
+      const t = (i / N) * Math.PI * 2;
+      const target = heartPoint(t, scale, cx, cy);
+      heartParticles.push({
+        x: Math.random() * W, y: Math.random() * H,
+        tx: target.x, ty: target.y,
+        color: colors[i % colors.length],
+        delay: Math.random() * 350
+      });
+    }
+    const start = performance.now();
+    if(heartAnimId) cancelAnimationFrame(heartAnimId);
+    function frame(now){
+      const elapsed = now - start;
+      heartCtx.clearRect(0, 0, W, H);
+      heartParticles.forEach(p => {
+        if(elapsed >= p.delay){
+          const dx = p.tx - p.x, dy = p.ty - p.y;
+          p.x += dx * 0.06;
+          p.y += dy * 0.06;
+          if(Math.abs(dx) < 0.6 && Math.abs(dy) < 0.6){
+            p.x += Math.sin((now / 600) + p.tx) * 0.15;
+            p.y += Math.cos((now / 700) + p.ty) * 0.15;
+          }
+        }
+        heartCtx.beginPath();
+        heartCtx.fillStyle = p.color;
+        heartCtx.arc(p.x, p.y, 3.2 * dpr, 0, Math.PI * 2);
+        heartCtx.fill();
+      });
+      heartAnimId = requestAnimationFrame(frame);
+    }
+    heartAnimId = requestAnimationFrame(frame);
+  }
+
+  function stopHeartFinale(){
+    if(heartAnimId){ cancelAnimationFrame(heartAnimId); heartAnimId = null; }
+    if(heartCtx && heartCanvas) heartCtx.clearRect(0, 0, heartCanvas.width, heartCanvas.height);
+  }
+
+  /* ---------- downloadable keepsake certificate ---------- */
+  function downloadCertificate(){
+    Sound2.sfx('click');
+    const cw = 900, ch = 1200;
+    const c = document.createElement('canvas');
+    c.width = cw; c.height = ch;
+    const ctx = c.getContext('2d');
+    const grad = ctx.createLinearGradient(0, 0, 0, ch);
+    grad.addColorStop(0, '#0a0a10');
+    grad.addColorStop(1, '#1a0f14');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, cw, ch);
+    ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(30, 30, cw - 60, ch - 60);
+    ctx.strokeStyle = 'rgba(255,93,158,0.5)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(42, 42, cw - 84, ch - 84);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#ff5d9e';
+    ctx.font = "700 38px 'Baloo 2', sans-serif";
+    ctx.fillText('CERTIFICATE OF YES', cw/2, 190);
+    ctx.font = "60px serif";
+    ctx.fillText('💖', cw/2, 300);
+    ctx.fillStyle = '#f2ede4';
+    ctx.font = "800 70px 'Baloo 2', sans-serif";
+    ctx.fillText('do you love me?', cw/2, 430);
+    ctx.font = "700 46px 'Baloo 2', sans-serif";
+    ctx.fillStyle = '#7ec8ff';
+    ctx.fillText('YES.', cw/2, 520);
+    ctx.fillStyle = '#8f8a9c';
+    ctx.font = "26px 'Nunito', sans-serif";
+    const dateStr = new Date().toLocaleDateString(undefined, {year:'numeric', month:'long', day:'numeric'});
+    ctx.fillText(dateStr, cw/2, 600);
+    ctx.font = "22px 'Nunito', sans-serif";
+    ctx.fillText('officially, legally, romantically confirmed', cw/2, 640);
+    ctx.save();
+    ctx.translate(cw/2, ch - 160);
+    ctx.rotate(-0.08);
+    ctx.strokeStyle = 'rgba(255,45,77,0.7)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(0, 0, 80, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(255,45,77,0.85)';
+    ctx.font = "700 20px 'Baloo 2', sans-serif";
+    ctx.fillText('CONFIRMED', 0, 6);
+    ctx.restore();
+    const link = document.createElement('a');
+    link.download = 'certificate-of-yes.png';
+    link.href = c.toDataURL('image/png');
+    link.click();
+  }
+  btnCertificate.addEventListener('click', downloadCertificate);
+
+  /* ---------- hidden easter egg: long-press the sticker ---------- */
+  let stickerTimer = null;
+  function stickerPressStart(){
+    stickerTimer = setTimeout(() => {
+      showSubtitle("Psst — I've been nervous about this all week.");
+      vibe(30);
+    }, 1200);
+  }
+  function stickerPressEnd(){
+    if(stickerTimer){ clearTimeout(stickerTimer); stickerTimer = null; }
+  }
+  stickerEl.addEventListener('pointerdown', stickerPressStart);
+  stickerEl.addEventListener('pointerup', stickerPressEnd);
+  stickerEl.addEventListener('pointerleave', stickerPressEnd);
+  stickerEl.addEventListener('touchend', stickerPressEnd);
+
+  btnReplay.addEventListener('click', () => {
+    Sound2.sfx('click');
+    noCount = 0;
+    evadeAttempts = 0;
+    evasiveMode = false;
+    yesConfirmUsed = false;
+    buildSequence();
+    hideSubtitle();
+    hideCallCard();
+    stopHeartFinale();
+    Sound2.setMood('calm');
+    callIcon.textContent = '📞';
+    callName.textContent = 'Electrician';
+    candlesFx.classList.remove('show');
+    fuseboxFx.classList.remove('show');
+    fuseSwitch.classList.remove('flip');
+    radioFx.classList.remove('show', 'static');
+    flashlightFx.classList.remove('show');
+    sosLayer.style.opacity = '0';
+    sosLayer.style.background = '#fff6da';
+    stage.classList.remove('solid-black', 'solid-black-blue', 'solid-black-warm', 'flicker', 'shake');
+    if('speechSynthesis' in window) speechSynthesis.cancel();
+    btnNo.classList.remove('evasive-armed');
+    btnNo.style.position = '';
+    btnNo.style.left = '';
+    btnNo.style.top = '';
+    btnFinal.classList.remove('revealed');
+    catVideo.pause();
+    catVideo.currentTime = 0;
+    btnNo.removeEventListener('pointerenter', handleEvade);
+    btnNo.removeEventListener('touchstart', handleEvadeTouch);
+    showScene('scene-intro');
+  });
+
+  window.addEventListener('resize', () => {
+    if(evasiveMode) positionNoInPlace();
+  });
+
+  showSubtitle("Hey. There's something I've been wanting to ask you.");
+})();
+</script>
+
+</body>
+</html>
