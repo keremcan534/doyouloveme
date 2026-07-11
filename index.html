@@ -1049,7 +1049,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     }
     Sound2.ensure();
     Sound2.setMood('calm');
-    bgMusic.play().catch(() => {});
+    ensureBgPlaying();
     fadeAudioVolume(bgMusic, BG_VOLUME, 2200);
     startRhythmFlashes();
     requestTilt();
@@ -1127,6 +1127,17 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
   const bgMusic = new Audio(AUDIO_BASE + 'outsidebackground.mp3');
   bgMusic.loop = true;
   bgMusic.volume = 0;
+  bgMusic.preload = 'auto';
+  try{ bgMusic.load(); }catch(e){}
+
+  function ensureBgPlaying(retriesLeft){
+    retriesLeft = (retriesLeft === undefined) ? 4 : retriesLeft;
+    const p = bgMusic.play();
+    if(p && p.catch) p.catch(() => {});
+    setTimeout(() => {
+      if(bgMusic.paused && retriesLeft > 0) ensureBgPlaying(retriesLeft - 1);
+    }, 400);
+  }
 
   function fadeAudioVolume(audioEl, target, ms){
     const start = audioEl.volume;
@@ -2035,7 +2046,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     endingVideo.pause();
     endingVideo.classList.remove('show');
     endingStarted = false;
-    bgMusic.play().catch(() => {});
+    ensureBgPlaying();
     fadeAudioVolume(bgMusic, BG_VOLUME, 800);
     noCount = 0;
     evadeAttempts = 0;
