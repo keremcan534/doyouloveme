@@ -699,7 +699,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
   <section id="scene-wait" class="scene">
     <div class="adam-figure small"><span class="eye eye-left"></span><span class="eye eye-right"></span></div>
     <div class="watch-panel">
-      <video id="cat-video" class="watch-video" src="cat-duck-shoes.mp4" muted playsinline preload="auto"></video>
+      <video id="cat-video" class="watch-video" src="cat-duck-shoes.mp4" playsinline preload="auto"></video>
       <div class="watch-bar"><div class="watch-bar-fill" id="watch-bar-fill"></div></div>
     </div>
   </section>
@@ -1544,8 +1544,11 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
   function startCatVideo(proceed){
     showScene('scene-wait');
     watchBarFill.style.width = '0%';
+    duckBg();
+    catVideo.volume = 1;
     catVideo.currentTime = 0;
     catVideo.onended = () => {
+      restoreBg();
       playLine('video-end', "See? Told you.", proceed);
     };
     catVideo.ontimeupdate = () => {
@@ -1554,6 +1557,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
       }
     };
     catVideo.play().catch(() => {
+      restoreBg();
       setTimeout(() => catVideo.onended(), 4000);
     });
   }
