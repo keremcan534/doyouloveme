@@ -86,8 +86,9 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
   #stage.flicker #blackout-layer{ animation: flickerAnim 2.2s steps(1,end) forwards; }
   #stage.solid-black #blackout-layer{
     opacity:1;
-    background: radial-gradient(circle at 50% 42%, rgba(90,0,12,0.4), #000 68%);
-    animation: emergencyPulse 1.9s ease-in-out infinite;
+    background: radial-gradient(circle at 50% 50%, #1a1a24 0%, #050508 100%);
+    transition: opacity 2s ease, background 2s ease;
+    animation: none;
   }
   #stage.solid-black-blue #blackout-layer{
     opacity:1;
@@ -465,9 +466,9 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
   }
   .sos-grid{
     display:grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 6px;
-    width: min(220px, 62vw);
+    width: min(180px, 50vw);
     margin-bottom: 2vh;
   }
   .sos-cell{
@@ -564,8 +565,12 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
   .ending-video.show{ opacity: 1; }
   .heart-canvas{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
   .win-content{ position:relative; z-index:2; }
-  .win-content .win-emoji{ font-size: clamp(3rem, 12vw, 4.5rem); animation: pop .5s ease; filter: drop-shadow(0 0 20px rgba(255,93,158,.5)); }
-  @keyframes pop{ 0%{ transform: scale(.4); opacity:0;} 70%{ transform: scale(1.15);} 100%{ transform: scale(1); opacity:1;} }
+  .win-content .win-emoji{ font-size: clamp(3rem, 12vw, 4.5rem); animation: epicGrowth 8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards infinite; }
+  @keyframes epicGrowth {
+    0% { transform: scale(0.4); opacity: 0; filter: drop-shadow(0 0 10px rgba(255,93,158,0.5)); }
+    10% { transform: scale(1.15); opacity: 1; filter: drop-shadow(0 0 30px rgba(255,93,158,0.8)); }
+    100% { transform: scale(2.5); opacity: 1; filter: drop-shadow(0 0 120px rgba(255,93,158,1)); }
+  }
   .win-content h2{
     font-family:'Baloo 2', sans-serif;
     font-size: clamp(1.8rem, 7vw, 2.6rem);
@@ -612,6 +617,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
   <div class="start-gate-inner">
     <div class="start-heart">💖</div>
     <p>tap to begin</p>
+    <p style="font-size:0.8rem; margin-top:5px; margin-bottom: 0;">made by Kerem</p>
   </div>
 </div>
 
@@ -1049,8 +1055,9 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     }
     Sound2.ensure();
     Sound2.setMood('calm');
+    bgMusic.volume = BG_VOLUME;
+    bgMusic.play().catch(()=>{});
     ensureBgPlaying();
-    fadeAudioVolume(bgMusic, BG_VOLUME, 2200);
     startRhythmFlashes();
     requestTilt();
     startGate.classList.add('hide');
@@ -1059,27 +1066,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
   });
 
   function speakLineFallback(text, onDone){
-    if(!('speechSynthesis' in window)){
-      if(onDone) setTimeout(onDone, Math.min(Math.max(text.length * 70, 1400), 3800));
-      return;
-    }
-    try{
-      speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      if(chosenVoice) u.voice = chosenVoice;
-      u.rate = 0.78;
-      u.pitch = 0.75;
-      u.volume = 1;
-      let done = false;
-      const READ_PAUSE = 1200;
-      const finish = () => { if(done) return; done = true; if(onDone) onDone(); };
-      u.onend = () => setTimeout(finish, READ_PAUSE);
-      u.onerror = finish;
-      setTimeout(finish, Math.min(Math.max(text.length * 65, 1400), 3600) + READ_PAUSE);
-      speechSynthesis.speak(u);
-    }catch(e){
-      if(onDone) onDone();
-    }
+    if(onDone) setTimeout(onDone, Math.min(Math.max(text.length * 70, 1400), 3800));
   }
 
   /* ---------- real recorded voice lines, with the browser voice as a safety net ---------- */
@@ -1150,7 +1137,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     requestAnimationFrame(step);
   }
   let endingStarted = false;
-  function duckBg(){ fadeAudioVolume(bgMusic, BG_VOLUME * 0.22, 300); }
+  function duckBg(){ fadeAudioVolume(bgMusic, BG_VOLUME * 0.6, 300); }
   function restoreBg(){ if(endingStarted) return; fadeAudioVolume(bgMusic, BG_VOLUME, 700); }
 
   let endingAudio = null;
@@ -1278,8 +1265,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
 
   function pickBlackoutStyle(){
     const r = Math.random();
-    if(r < 0.4) return 'flicker';
-    if(r < 0.7) return 'fade';
+    if(r < 0.5) return 'fade';
     return 'letters';
   }
 
@@ -1553,7 +1539,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
 
   function excuseSOSGame(proceed){
     sosProceedCb = proceed;
-    sosBoard = new Array(16).fill(null);
+    sosBoard = new Array(9).fill(null);
     sosPlayerLetter = 'S';
     sosPlayerScore = 0; sosAdamScore = 0;
     sosPlayerFirstScoreSaid = false;
@@ -1605,7 +1591,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
 
   function findSOSMatches(board, idx){
     const matches = [];
-    const row = Math.floor(idx / 4), col = idx % 4;
+    const row = Math.floor(idx / 3), col = idx % 3;
     const dirs = [[0,1],[1,0],[1,1],[1,-1]];
     dirs.forEach(dir => {
       const dr = dir[0], dc = dir[1];
@@ -1613,8 +1599,8 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
         const cells = [0,1,2].map(k => {
           const r = row + dr * (start + k);
           const c = col + dc * (start + k);
-          if(r < 0 || r > 3 || c < 0 || c > 3) return null;
-          return r * 4 + c;
+          if(r < 0 || r > 2 || c < 0 || c > 2) return null;
+          return r * 3 + c;
         });
         if(cells.includes(null) || !cells.includes(idx)) continue;
         const letters = cells.map(c => board[c]).join('');
@@ -1925,7 +1911,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     const W = heartCanvas.width, H = heartCanvas.height;
     const cx = W / 2, cy = H / 2 - 10 * dpr;
     const scale = Math.min(W, H) / 34;
-    const N = 80;
+    const N = 250;
     const colors = ['#ff5d9e', '#ff2d4d', '#eaf6ff', '#7ec8ff'];
     heartParticles = [];
     for(let i = 0; i < N; i++){
