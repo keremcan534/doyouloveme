@@ -196,11 +196,11 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     border-radius: 50%;
     pointer-events: none;
     z-index: 15;
-    opacity: 0;
+    opacity: 0 !important;
     transform: scale(0.6);
     transition: opacity .15s ease, transform .5s ease;
   }
-  .rhythm-flash.show{ opacity: 1; transform: scale(1); }
+  .rhythm-flash.show{ opacity: 0.8 !important; transform: scale(1); mix-blend-mode: screen; }
   @media (prefers-reduced-motion: reduce){
     .rhythm-flash{ display: none; }
   }
@@ -543,6 +543,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     font-family:'Baloo 2', sans-serif;
     font-weight:700;
     font-size: 1.3rem;
+    pointer-events: none;
   }
   .btn-final .cover{
     background: linear-gradient(160deg, #ffb3ba, var(--neon-red) 55%, var(--neon-red-dark));
@@ -567,6 +568,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     position:absolute; inset:0;
     width:100%; height:100%;
     object-fit: cover;
+    filter: brightness(0.65);
     opacity: 0;
     transition: opacity 1.6s ease;
     pointer-events: none;
@@ -1896,7 +1898,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
         afterPause(2600, playEndingSong);
         afterPause(1200, () => Sound2.setMood('none'));
       });
-    }, 500);
+    }, 200);
   }
   btnFinal.addEventListener('click', handleFinalYes);
   btnFinal.addEventListener('touchstart', handleFinalYes, {passive:false});
@@ -1930,8 +1932,8 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     if(!heartCanvas) return;
     heartCtx = heartCanvas.getContext('2d');
     const dpr = window.devicePixelRatio || 1;
-    heartCanvas.width = heartCanvas.clientWidth * dpr;
-    heartCanvas.height = heartCanvas.clientHeight * dpr;
+    heartCanvas.width = window.innerWidth * dpr;
+    heartCanvas.height = window.innerHeight * dpr;
     const W = heartCanvas.width, H = heartCanvas.height;
     const cx = W / 2, cy = H / 2 - 10 * dpr;
     const scale = Math.min(W, H) / 34;
@@ -1965,7 +1967,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
         }
         heartCtx.save();
         heartCtx.translate(p.x, p.y);
-        heartCtx.scale(dpr * 0.45, dpr * 0.45);
+        heartCtx.scale(dpr * 1.5, dpr * 1.5);
         heartCtx.beginPath();
         heartCtx.moveTo(0, 0);
         heartCtx.bezierCurveTo(0, -3, -5, -3, -5, 0);
