@@ -792,6 +792,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
   let evasiveMode = false;
   let yesConfirmUsed = false;
   let sequence = [];
+  let isExcusing = false;
 
   function vibe(pattern){
     try{ if(navigator.vibrate) navigator.vibrate(pattern); }catch(e){}
@@ -1394,6 +1395,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
   }
 
   btnYes.addEventListener('click', () => {
+    if(isExcusing) return;
     Sound2.sfx('click');
     if(!yesConfirmUsed){
       yesConfirmUsed = true;
@@ -1419,16 +1421,19 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
 
   /* ---------- NO: a randomized run of excuses, then the button makes a run for it ---------- */
   btnNo.addEventListener('click', () => {
+    if(isExcusing) return;
     Sound2.sfx('click');
     if(evasiveMode){ handleEvade(); return; }
+    isExcusing = true;
     noCount++;
     const id = sequence[noCount - 1];
-    if(!id) return;
+    if(!id) { isExcusing = false; return; }
     runExcuse(id, noCount === sequence.length);
   });
 
   function runExcuse(id, isLast){
     const proceed = () => {
+      isExcusing = false;
       showScene('scene-intro');
       if(isLast) afterPause(1000, armEvasive);
       else Sound2.setMood('calm');
