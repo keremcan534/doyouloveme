@@ -83,7 +83,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     pointer-events:none;
     z-index: 50;
   }
-  #stage.flicker #blackout-layer{ animation: flickerAnim 1.6s steps(1,end) forwards; }
+  #stage.flicker #blackout-layer{ animation: flickerAnim 2.2s steps(1,end) forwards; }
   #stage.solid-black #blackout-layer{
     opacity:1;
     background: radial-gradient(circle at 50% 42%, rgba(90,0,12,0.4), #000 68%);
@@ -190,6 +190,19 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
   }
   .flashlight-fx.show{ opacity: 1; animation: flashlightWobble 2.2s ease-in-out infinite; }
   @keyframes flashlightWobble{ 0%,100%{ opacity:.9; } 50%{ opacity:.6; } }
+  .rhythm-flash{
+    position: fixed;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 15;
+    opacity: 0;
+    transform: scale(0.6);
+    transition: opacity .15s ease, transform .5s ease;
+  }
+  .rhythm-flash.show{ opacity: 1; transform: scale(1); }
+  @media (prefers-reduced-motion: reduce){
+    .rhythm-flash{ display: none; }
+  }
   .mute-btn{
     position: fixed; top: 14px; right: 14px; z-index: 95;
     width: 38px; height: 38px; border-radius: 50%;
@@ -221,7 +234,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     text-transform: lowercase;
   }
   #stage.fade-to-black #blackout-layer{
-    transition: opacity 1.3s ease;
+    transition: opacity 1.9s ease;
     opacity: 1;
     background: #000;
   }
@@ -617,7 +630,9 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
   <section id="scene-intro" class="scene active">
     <h1 class="title">do you <span class="heart">love</span> me?</h1>
     <div class="sticker-slot" id="sticker">
-      <img src="sticker.jpg" alt="sticker" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
+      <img src="sticker.jpg" alt="sticker" style="width:100%;height:100%;border-radius:50%;object-fit:cover;"
+           onerror="this.style.display='none'; document.getElementById('sticker-fallback').style.display='block';">
+      <span id="sticker-fallback" style="display:none;">💌</span>
     </div>
     <div class="sticker-note">(you can drop your own sticker here)</div>
     <div class="btn-row">
@@ -727,7 +742,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
   const stickerEl = document.getElementById('sticker');
 
   const REDUCE_MOTION = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const FLICKER_MS = 1600;
+  const FLICKER_MS = 2200;
 
   let noCount = 0;
   let evadeAttempts = 0;
@@ -1025,6 +1040,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     Sound2.setMood('calm');
     bgMusic.play().catch(() => {});
     fadeAudioVolume(bgMusic, BG_VOLUME, 2200);
+    startRhythmFlashes();
     requestTilt();
     startGate.classList.add('hide');
     startGate.removeEventListener('click', unlock);
@@ -1059,6 +1075,42 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
   const AUDIO_BASE = 'audio/';
   let currentLineAudio = null;
 
+  /* ---------- random light flashes, timed loosely like a beat (kept fully separate
+     from the actual audio elements so they can never interfere with playback) ---------- */
+  function triggerLightFlash(strength){
+    if(REDUCE_MOTION) return;
+    const el = document.createElement('div');
+    el.className = 'rhythm-flash';
+    const size = 90 + Math.random() * 150;
+    el.style.width = size + 'px';
+    el.style.height = size + 'px';
+    el.style.left = (Math.random() * 88) + 'vw';
+    el.style.top = (Math.random() * 82) + 'vh';
+    const colors = [
+      'rgba(255,255,255,0.55)', 'rgba(255,93,158,0.45)',
+      'rgba(126,200,255,0.45)', 'rgba(255,45,77,0.4)'
+    ];
+    const c = colors[Math.floor(Math.random() * colors.length)];
+    el.style.background = 'radial-gradient(circle, ' + c + ', transparent 70%)';
+    el.style.opacity = '0';
+    document.body.appendChild(el);
+    requestAnimationFrame(() => el.classList.add('show'));
+    const life = 200 + (strength || 0.6) * 260;
+    setTimeout(() => {
+      el.classList.remove('show');
+      setTimeout(() => el.remove(), 500);
+    }, life);
+  }
+
+  let rhythmTimer = null;
+  function startRhythmFlashes(){
+    if(rhythmTimer || REDUCE_MOTION) return;
+    (function tick(){
+      triggerLightFlash(0.4 + Math.random() * 0.6);
+      rhythmTimer = setTimeout(tick, 480 + Math.random() * 820);
+    })();
+  }
+
   /* ---------- background music bed, ducks down whenever someone is talking ---------- */
   const BG_VOLUME = 0.28;
   const bgMusic = new Audio(AUDIO_BASE + 'outsidebackground.mp3');
@@ -1075,12 +1127,15 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     }
     requestAnimationFrame(step);
   }
+  let endingStarted = false;
   function duckBg(){ fadeAudioVolume(bgMusic, BG_VOLUME * 0.22, 300); }
-  function restoreBg(){ fadeAudioVolume(bgMusic, BG_VOLUME, 700); }
+  function restoreBg(){ if(endingStarted) return; fadeAudioVolume(bgMusic, BG_VOLUME, 700); }
 
   let endingAudio = null;
   function playEndingSong(){
+    endingStarted = true;
     fadeAudioVolume(bgMusic, 0, 1200); // let the ending track have the moment to itself
+    setTimeout(() => { try{ bgMusic.pause(); }catch(e){} }, 1300);
     endingAudio = new Audio(AUDIO_BASE + 'playdateending.mp3');
     endingAudio.volume = 1;
     endingAudio.play().catch(() => {});
@@ -1178,18 +1233,18 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
   function powerDownLetters(cb){
     if(REDUCE_MOTION || !titleLetters.length){ cb(); return; }
     let i = 0;
-    const stepMs = 65;
+    const stepMs = 95;
     function step(){
       if(i < titleLetters.length){
         titleLetters[i].style.opacity = '0.1';
         i++;
         setTimeout(step, stepMs);
       } else {
-        btnYes.style.transition = 'opacity .4s ease';
-        btnNo.style.transition = 'opacity .4s ease';
+        btnYes.style.transition = 'opacity .6s ease';
+        btnNo.style.transition = 'opacity .6s ease';
         btnYes.style.opacity = '0.15';
         btnNo.style.opacity = '0.15';
-        setTimeout(cb, 450);
+        setTimeout(cb, 650);
       }
     }
     step();
@@ -1214,7 +1269,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
       }, holdMs);
     };
     if(style === 'letters'){
-      afterPause(300, () => {
+      afterPause(400, () => {
         powerDownLetters(() => {
           stage.classList.add('shake');
           spawnSparks();
@@ -1223,11 +1278,11 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
           setTimeout(() => {
             stage.classList.remove('fade-to-black');
             finishToSolid();
-          }, 650);
+          }, 900);
         });
       });
     } else if(style === 'fade'){
-      afterPause(300, () => {
+      afterPause(400, () => {
         stage.classList.add('fade-to-black');
         setTimeout(() => {
           stage.classList.remove('fade-to-black');
@@ -1235,10 +1290,10 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
           spawnSparks();
           setTimeout(() => stage.classList.remove('shake'), 450);
           finishToSolid();
-        }, 1500);
+        }, 2100);
       });
     } else {
-      afterPause(300, () => {
+      afterPause(400, () => {
         stage.classList.add('flicker', 'shake');
         spawnSparks();
         setTimeout(() => stage.classList.remove('shake'), 450);
@@ -1962,6 +2017,8 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     Sound2.sfx('click');
     if(currentLineAudio){ try{ currentLineAudio.pause(); }catch(e){} currentLineAudio = null; }
     if(endingAudio){ try{ endingAudio.pause(); }catch(e){} endingAudio = null; }
+    endingStarted = false;
+    bgMusic.play().catch(() => {});
     fadeAudioVolume(bgMusic, BG_VOLUME, 800);
     noCount = 0;
     evadeAttempts = 0;
