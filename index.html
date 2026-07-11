@@ -771,7 +771,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
   const flashlightFx = document.getElementById('flashlight-fx');
   const stickerEl = document.getElementById('sticker');
 
-  const REDUCE_MOTION = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const REDUCE_MOTION = false;
   const FLICKER_MS = 2200;
 
   let noCount = 0;
@@ -1882,7 +1882,6 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
   }
 
   function handleFinalYes(e) {
-    if(e && e.cancelable) e.preventDefault();
     if(btnFinal.classList.contains('revealed')) return;
     btnFinal.classList.add('revealed');
     Sound2.sfx('chime');
