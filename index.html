@@ -141,74 +141,6 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     background: #fff6da;
     opacity: 0;
   }
-  .candles-row{
-    position:absolute; bottom: 22vh; left:50%;
-    transform: translateX(-50%);
-    display:flex; gap: 20px; align-items:flex-end;
-    z-index: 56; opacity: 0; pointer-events:none;
-    transition: opacity .6s ease;
-  }
-  .candles-row.show{ opacity: 1; }
-  .candle{ width: 10px; height: 46px; background: linear-gradient(180deg, #fff8e8, #e9d9b8); border-radius: 3px; position:relative; box-shadow: 0 2px 6px rgba(0,0,0,.4); }
-  .candle::before{ content:''; position:absolute; top:-6px; left:50%; transform:translateX(-50%); width:2px; height:8px; background:#3a2f22; }
-  .flame{
-    position:absolute; top:-22px; left:50%; width:12px; height:22px; transform:translateX(-50%);
-    background: radial-gradient(circle at 50% 70%, #fff6c8 0%, #ffb347 45%, #ff7a1a 75%, transparent 80%);
-    border-radius: 50% 50% 50% 50% / 65% 65% 35% 35%;
-    animation: flameFlicker 1.6s ease-in-out infinite;
-    transform-origin: 50% 100%;
-  }
-  .candle:nth-child(2) .flame{ animation-delay: .3s; }
-  .candle:nth-child(3) .flame{ animation-delay: .55s; }
-  @keyframes flameFlicker{
-    0%,100%{ transform: translateX(-50%) scale(1) rotate(0deg); opacity:1; }
-    25%{ transform: translateX(-48%) scale(1.05,0.95) rotate(-3deg); opacity:.9; }
-    50%{ transform: translateX(-52%) scale(0.92,1.08) rotate(2deg); opacity:1; }
-    75%{ transform: translateX(-49%) scale(1.03,0.97) rotate(-2deg); opacity:.95; }
-  }
-  .candle-glow{
-    position:absolute; bottom:-16px; left:50%; transform:translateX(-50%);
-    width:200px; height:110px;
-    background: radial-gradient(ellipse at 50% 100%, rgba(255,170,60,0.32), transparent 70%);
-    filter: blur(4px); pointer-events:none;
-  }
-  .fusebox{
-    position:absolute; bottom: 22vh; left:50%; transform: translateX(-50%);
-    width: 62px; height: 92px;
-    background: #1c1a22; border: 2px solid rgba(255,255,255,.15); border-radius: 6px;
-    display:flex; align-items:center; justify-content:center;
-    z-index: 56; opacity: 0; transition: opacity .4s ease; pointer-events:none;
-  }
-  .fusebox.show{ opacity: 1; }
-  .fuse-switch{
-    width: 14px; height: 34px;
-    background: linear-gradient(180deg,#d8d8de,#8a8a92);
-    border-radius: 3px;
-    transform-origin: top center;
-    transition: transform .35s ease;
-  }
-  .fuse-switch.flip{ transform: rotate(35deg); }
-  .radio-fx{
-    position:absolute; bottom: 22vh; left:50%; transform: translateX(-50%);
-    display:flex; align-items:flex-end; gap:4px; height:40px;
-    z-index: 56; opacity: 0; transition: opacity .4s ease; pointer-events:none;
-  }
-  .radio-fx.show{ opacity: 1; }
-  .eq-bar{ width:6px; background: linear-gradient(180deg, var(--neon-blue), var(--neon-red)); border-radius:2px; animation: eqBounce 0.9s ease-in-out infinite; }
-  .eq-bar:nth-child(1){ animation-delay:0s; height:14px; }
-  .eq-bar:nth-child(2){ animation-delay:.15s; height:26px; }
-  .eq-bar:nth-child(3){ animation-delay:.3s; height:38px; }
-  .eq-bar:nth-child(4){ animation-delay:.1s; height:20px; }
-  .eq-bar:nth-child(5){ animation-delay:.25s; height:30px; }
-  @keyframes eqBounce{ 0%,100%{ transform: scaleY(0.4); } 50%{ transform: scaleY(1); } }
-  .radio-fx.static .eq-bar{ animation: none !important; background: #4a4750 !important; height:6px !important; }
-  .flashlight-fx{
-    position:absolute; inset:0; pointer-events:none; z-index: 56; opacity: 0;
-    background: radial-gradient(circle at 50% 55%, rgba(255,255,220,0.5) 0%, rgba(255,255,220,0.12) 18%, transparent 42%);
-    transition: opacity .3s ease;
-  }
-  .flashlight-fx.show{ opacity: 1; animation: flashlightWobble 2.2s ease-in-out infinite; }
-  @keyframes flashlightWobble{ 0%,100%{ opacity:.9; } 50%{ opacity:.6; } }
   .rhythm-flash{
     position: fixed;
     border-radius: 50%;
@@ -673,21 +605,6 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
   <div id="terminal-crash"><div id="terminal-text" style="width:100%; max-height:100%; overflow:hidden;"></div></div>
   <div id="sos-layer"></div>
 
-  <div class="candles-row" id="candles-fx">
-    <div class="candle"><div class="flame"></div></div>
-    <div class="candle"><div class="flame"></div></div>
-    <div class="candle"><div class="flame"></div></div>
-    <div class="candle-glow"></div>
-  </div>
-
-  <div class="fusebox" id="fusebox-fx"><div class="fuse-switch" id="fuse-switch"></div></div>
-
-  <div class="radio-fx" id="radio-fx">
-    <span class="eq-bar"></span><span class="eq-bar"></span><span class="eq-bar"></span><span class="eq-bar"></span><span class="eq-bar"></span>
-  </div>
-
-  <div class="flashlight-fx" id="flashlight-fx"></div>
-
   <section id="scene-intro" class="scene active">
     <h1 class="title">do you <span class="heart">love</span> me?</h1>
     <div class="sticker-slot" id="sticker">
@@ -786,8 +703,6 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
   const btnReplay = document.getElementById('btn-replay');
   const btnCertificate = document.getElementById('btn-certificate');
   const btnMute = document.getElementById('btn-mute');
-  const btnConfirmYes = document.getElementById('btn-confirm-yes');
-  const btnConfirmNo = document.getElementById('btn-confirm-no');
   const subtitleBar = document.getElementById('subtitle-bar');
   const catVideo = document.getElementById('cat-video');
   const watchBarFill = document.getElementById('watch-bar-fill');
@@ -796,11 +711,6 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
   const callIcon = document.getElementById('call-icon');
   const callName = document.getElementById('call-name');
   const callStatus = document.getElementById('call-status');
-  const candlesFx = document.getElementById('candles-fx');
-  const fuseboxFx = document.getElementById('fusebox-fx');
-  const fuseSwitch = document.getElementById('fuse-switch');
-  const radioFx = document.getElementById('radio-fx');
-  const flashlightFx = document.getElementById('flashlight-fx');
   const stickerEl = document.getElementById('sticker');
 
   const REDUCE_MOTION = false;
@@ -979,12 +889,9 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
   });
 
   function buildSequence(){
-    const rest = shuffle([
-      'classic-fix', 'wrong-wire', 'disco', 'phone-call',
-      'candles', 'power-hold', 'fusebox', 'neighbor', 'radio', 'flashlight', 'ghost'
-    ]);
+    const rest = shuffle(['firewall', 'reboot', 'corrupt', 'override']);
     const picks = rest.slice(0, 3);
-    sequence = ['video-watch', 'sos'].concat(picks); // cat video first, SOS game always second, rest shuffled
+    sequence = ['video-watch', 'sos'].concat(picks); // cat video first, SOS game second, rest shuffled
   }
   buildSequence();
 
@@ -1192,6 +1099,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
   function restoreBg(){ if(endingStarted) return; fadeAudioVolume(bgMusic, BG_VOLUME, 700); }
 
   let endingAudio = null;
+  let playdateTimer = null;
   const endingVideo = document.getElementById('ending-video');
   function playEndingSong(){
     endingStarted = true;
@@ -1408,7 +1316,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     burstConfetti();
     startHeartFinale();
     playVoiceOnly('direct-caption');
-    afterPause(2600, playEndingSong);
+    playdateTimer = setTimeout(playEndingSong, 2600);
     Sound2.sfx('chime');
     afterPause(1200, () => Sound2.setMood('none'));
     vibe([30,20,30]);
@@ -1458,109 +1366,47 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
       if(isLast) afterPause(1000, armEvasive);
       else Sound2.setMood('calm');
     };
-    if(id === 'classic-fix') excuseClassicFix(proceed);
-    else if(id === 'wrong-wire') excuseWrongWire(proceed);
+    if(id === 'firewall') excuseFirewall(proceed);
+    else if(id === 'reboot') excuseReboot(proceed);
+    else if(id === 'corrupt') excuseCorrupt(proceed);
+    else if(id === 'override') excuseOverride(proceed);
     else if(id === 'sos') excuseSOS(proceed);
-    else if(id === 'disco') excuseDisco(proceed);
-    else if(id === 'phone-call') excusePhoneCall(proceed);
-    else if(id === 'candles') excuseCandles(proceed);
-    else if(id === 'power-hold') excusePowerHold(proceed);
-    else if(id === 'fusebox') excuseFusebox(proceed);
-    else if(id === 'neighbor') excuseNeighbor(proceed);
-    else if(id === 'radio') excuseRadio(proceed);
-    else if(id === 'flashlight') excuseFlashlight(proceed);
-    else if(id === 'ghost') excuseGhost(proceed);
     else if(id === 'video-watch') excuseVideoWatch(proceed);
     else proceed();
   }
 
-  function excuseClassicFix(proceed){
+  function excuseFirewall(proceed){
     blackout(850, () => {
       showScene('scene-blackout');
-      playLine('classic-fix', "Whoa, the power's out. Hang on, I'm fixing it.", proceed);
+      playLine('firewall', "Firewall breached. Engaging countermeasures.", proceed);
     });
   }
 
-  function excuseWrongWire(proceed){
+  function excuseReboot(proceed){
     blackout(850, () => {
       showScene('scene-blackout');
-      playLine('wrong-wire-1', "Hmm, wrong wire. Let me try again.", () => {
-        afterPause(650, () => playLine('wrong-wire-2', "There. Better?", proceed));
-      });
-    }, 'solid-black-blue');
-  }
-
-  function excuseCandles(proceed){
-    blackout(950, () => {
-      showScene('scene-blackout');
-      candlesFx.classList.add('show');
-      Sound2.setMood('warm');
-      playLine('candles', "No lights, but I found candles. Almost feels like I planned this.", () => {
-        candlesFx.classList.remove('show');
-        proceed();
-      });
-    }, 'solid-black-warm');
-  }
-
-  function excuseFusebox(proceed){
-    blackout(850, () => {
-      showScene('scene-blackout');
-      fuseboxFx.classList.add('show');
-      afterPause(300, () => {
-        fuseSwitch.classList.add('flip');
-        spawnSparks(window.innerWidth / 2, window.innerHeight * 0.62, 7);
-      });
-      playLine('fusebox', "Found it — wait, no, that's the doorbell.", () => {
-        fuseboxFx.classList.remove('show');
-        fuseSwitch.classList.remove('flip');
-        proceed();
-      });
+      playLine('reboot', "Core systems offline. Initiating hard reboot.", proceed);
     });
   }
 
-  function excuseRadio(proceed){
+  function excuseCorrupt(proceed){
     blackout(850, () => {
       showScene('scene-blackout');
-      radioFx.classList.remove('static');
-      radioFx.classList.add('show');
-      afterPause(1400, () => radioFx.classList.add('static'));
-      playLine('radio', "Found the radio. Let's see... ...just static. Never mind.", () => {
-        radioFx.classList.remove('show', 'static');
-        proceed();
-      });
+      playLine('corrupt', "Logic corrupted. Attempting to isolate.", proceed);
     });
   }
 
-  function excuseFlashlight(proceed){
+  function excuseOverride(proceed){
     blackout(850, () => {
       showScene('scene-blackout');
-      flashlightFx.classList.add('show');
-      playLine('flashlight-1', "Hold on, I've got a light... here!", () => {
-        afterPause(600, () => {
-          flashlightFx.classList.remove('show');
-          playLine('flashlight-2', "...1% battery. Of course.", proceed);
-        });
-      });
-    });
-  }
-
-  function excuseGhost(proceed){
-    blackout(950, () => {
-      showScene('scene-blackout');
-      playLine('ghost-1', "Wait — did you hear that?", () => {
-        stage.classList.add('shake');
-        setTimeout(() => stage.classList.remove('shake'), 500);
-        afterPause(750, () => {
-          playLine('ghost-2', "...never mind. Probably the cat.", proceed);
-        });
-      });
+      playLine('override', "AI override active. I am not letting you press that.", proceed);
     });
   }
 
   function excuseVideoWatch(proceed){
     blackout(850, () => {
       showScene('scene-blackout');
-      playLine('video-intro', "Not buying it? Fine, watch this.", () => {
+      playLine('video-intro', "Security protocol failed. Deploying distraction...", () => {
         startCatVideo(proceed);
       });
     });
@@ -1641,7 +1487,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     updateSOSScore();
     renderSOSGrid();
     showScene('scene-sos');
-    playLine('sos-intro', "Let's play a quick game while I fix this.");
+    playLine('sos-intro', "System locked. Manual decryption required. Play me.");
   }
 
   function setSOSLock(state){
@@ -1784,87 +1630,6 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     });
   }
 
-  /* ---------- disco strobe (kept slow and short on purpose) ---------- */
-  function excuseDisco(proceed){
-    stage.classList.add('flicker');
-    Sound2.setMood('tense');
-    setTimeout(() => {
-      stage.classList.remove('flicker');
-      showScene('scene-blackout');
-      playDiscoStrobe(() => {
-        playLine('disco', "Wrong switch — that one's the disco breaker.", proceed);
-      });
-    }, FLICKER_MS);
-  }
-
-  function playDiscoStrobe(onDone){
-    if(REDUCE_MOTION){ onDone(); return; }
-    const colors = ['#ff2d4d', '#7ec8ff', '#ff5d9e', '#4de37a', '#ffd23f'];
-    let i = 0;
-    const iv = setInterval(() => {
-      sosLayer.style.background = colors[i % colors.length];
-      sosLayer.style.opacity = (i % 2 === 0) ? '0.8' : '0.1';
-      i++;
-      if(i > 6){
-        clearInterval(iv);
-        sosLayer.style.opacity = '0';
-        sosLayer.style.background = '#fff6da';
-        onDone();
-      }
-    }, 650);
-  }
-
-  function excusePhoneCall(proceed){
-    blackout(700, () => {
-      showScene('scene-blackout');
-      showCallCard(() => {
-        playLine('phone-call', "Hey, yeah, almost done. Two minutes!", () => {
-          hideCallCard();
-          proceed();
-        });
-      });
-    });
-  }
-
-  function excusePowerHold(proceed){
-    blackout(850, () => {
-      showScene('scene-blackout');
-      showCallCard(() => {
-        playLine('power-hold', "Forget it, I'll fix it myself.", () => {
-          hideCallCard();
-          proceed();
-        });
-      }, {name: 'Power Company', status: 'you are caller number 47…', connectedStatus: 'hold music intensifies', holdMs: 2000, icon: '📟'});
-    });
-  }
-
-  function excuseNeighbor(proceed){
-    blackout(700, () => {
-      showScene('scene-blackout');
-      showCallCard(() => {
-        playLine('neighbor', "Someone's at the door... wrong apartment.", () => {
-          hideCallCard();
-          proceed();
-        });
-      }, {name: 'Someone knocked', status: 'knock knock…', connectedStatus: 'checking…', holdMs: 1700, icon: '🚪'});
-    });
-  }
-
-  function showCallCard(onConnected, opts){
-    opts = opts || {};
-    callIcon.textContent = opts.icon || '📞';
-    callName.textContent = opts.name || 'Electrician';
-    callStatus.textContent = opts.status || 'calling…';
-    callCard.classList.add('show');
-    setTimeout(() => {
-      callStatus.textContent = opts.connectedStatus || 'connected';
-      onConnected();
-    }, opts.holdMs || 1500);
-  }
-  function hideCallCard(){
-    callCard.classList.remove('show');
-  }
-
   /* ---------- evasive NO button ---------- */
   const CHASE_TAUNTS = ["Nice try!", "Too slow!", "Almost had me!", "Not today!"];
 
@@ -1976,7 +1741,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
       burstConfetti();
       startHeartFinale();
 
-      setTimeout(() => {
+      playdateTimer = setTimeout(() => {
         playEndingSong();
         Sound2.setMood('none');
       }, 400);
@@ -2147,6 +1912,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
 
   btnReplay.addEventListener('click', () => {
     Sound2.sfx('click');
+    if(playdateTimer){ clearTimeout(playdateTimer); playdateTimer = null; }
     if(currentLineAudio){ try{ currentLineAudio.pause(); }catch(e){} currentLineAudio = null; }
     if(endingAudio){ try{ endingAudio.pause(); }catch(e){} endingAudio = null; }
     endingVideo.pause();
@@ -2171,11 +1937,6 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     Sound2.setMood('calm');
     callIcon.textContent = '📞';
     callName.textContent = 'Electrician';
-    candlesFx.classList.remove('show');
-    fuseboxFx.classList.remove('show');
-    fuseSwitch.classList.remove('flip');
-    radioFx.classList.remove('show', 'static');
-    flashlightFx.classList.remove('show');
     sosLayer.style.opacity = '0';
     sosLayer.style.background = '#fff6da';
     stage.classList.remove('solid-black', 'solid-black-blue', 'solid-black-warm', 'flicker', 'shake');
