@@ -100,6 +100,24 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     background: radial-gradient(circle at 50% 42%, rgba(130,70,10,0.32), #000 66%);
     animation: emergencyPulse 2.6s ease-in-out infinite;
   }
+  #terminal-crash {
+    position: absolute; inset: 0;
+    background: #000;
+    color: #0f0;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9rem;
+    padding: 20px;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 60;
+    overflow: hidden;
+    white-space: pre-wrap;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+  #terminal-crash.active { opacity: 1; }
   @keyframes flickerAnim{
     0%{ opacity:0; background:#000; }
     3%{ opacity:1; background:#fff8e0; }
@@ -652,6 +670,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
   <div id="grain"></div>
   <div id="ambient-flicker"></div>
   <div id="blackout-layer"></div>
+  <div id="terminal-crash"><div id="terminal-text" style="width:100%; max-height:100%; overflow:hidden;"></div></div>
   <div id="sos-layer"></div>
 
   <div class="candles-row" id="candles-fx">
@@ -1332,51 +1351,52 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     return 'letters';
   }
 
+  const terminalTexts = [
+    "FATAL ERROR: Unauthorized user input detected.",
+    "System override initiated...",
+    "Bypassing core modules...",
+    "Re-routing power to YES_BUTTON_SUBSYSTEM",
+    "ERROR: NO_BUTTON module not found or corrupted.",
+    "Attempting fallback protocol [LOVE_PROTOCOL]...",
+    "Warning: Heartbeat sensor overload.",
+    "Executing kernel panic...",
+    "[ OK ] Mounting virtual feelings.",
+    "[FAIL] Cannot terminate affection process."
+  ];
+
   function blackout(holdMs, cb, variant){
-    variant = variant || 'solid-black';
     Sound2.setMood('tense');
-    const style = pickBlackoutStyle();
-    const finishToSolid = () => {
-      stage.classList.add(variant);
+    Sound2.sfx('zap');
+    stage.classList.add('shake');
+    spawnSparks();
+    setTimeout(() => stage.classList.remove('shake'), 450);
+
+    const crashScreen = document.getElementById('terminal-crash');
+    const textContainer = document.getElementById('terminal-text');
+    
+    if(crashScreen && textContainer) {
+      textContainer.innerHTML = '';
+      crashScreen.classList.add('active');
+      
+      let lineIdx = 0;
+      let crashInterval = setInterval(() => {
+        if (lineIdx < terminalTexts.length) {
+          textContainer.innerHTML += terminalTexts[lineIdx] + '<br>';
+          lineIdx++;
+        } else {
+          textContainer.innerHTML += '0x' + Math.floor(Math.random()*16777215).toString(16).toUpperCase() + ' ' +
+                                     '0x' + Math.floor(Math.random()*16777215).toString(16).toUpperCase() + '<br>';
+        }
+      }, 50);
+
       setTimeout(() => {
-        stage.classList.remove(variant);
-        cb();
-      }, holdMs);
-    };
-    if(style === 'letters'){
-      afterPause(400, () => {
-        powerDownLetters(() => {
-          stage.classList.add('shake');
-          spawnSparks();
-          setTimeout(() => stage.classList.remove('shake'), 450);
-          stage.classList.add('fade-to-black');
-          setTimeout(() => {
-            stage.classList.remove('fade-to-black');
-            finishToSolid();
-          }, 900);
-        });
-      });
-    } else if(style === 'fade'){
-      afterPause(400, () => {
-        stage.classList.add('fade-to-black');
-        setTimeout(() => {
-          stage.classList.remove('fade-to-black');
-          stage.classList.add('shake');
-          spawnSparks();
-          setTimeout(() => stage.classList.remove('shake'), 450);
-          finishToSolid();
-        }, 2100);
-      });
+        clearInterval(crashInterval);
+        if(variant) stage.classList.add(variant); // keep background state for ghost/flashlight
+        crashScreen.classList.remove('active');
+        if(cb) cb();
+      }, 1400); // 1.4 seconds of terminal crash before scene change
     } else {
-      afterPause(400, () => {
-        stage.classList.add('flicker', 'shake');
-        spawnSparks();
-        setTimeout(() => stage.classList.remove('shake'), 450);
-        setTimeout(() => {
-          stage.classList.remove('flicker');
-          finishToSolid();
-        }, FLICKER_MS);
-      });
+       if(cb) cb();
     }
   }
 
@@ -1950,14 +1970,24 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
 
     // Play ending music and video almost instantly (small delay for dramatic effect)
     setTimeout(() => {
-      playEndingSong();
-      Sound2.setMood('none');
-    }, 400);
+      // Switch scene after they read YES
+      document.getElementById('win-title').textContent = 'there it is.';
+      document.getElementById('win-caption').textContent = "that's exactly what I was hoping for.";
+      showScene('scene-win');
+      burstConfetti();
+      startHeartFinale();
 
-    // Play the final line but don't let it block the ending song
-    playLine('final-reveal', "I knew you'd pick this one. I really do love you.", () => {
-      playVoiceOnly('final-caption');
-    });
+      // Play ending music and video almost instantly
+      setTimeout(() => {
+        playEndingSong();
+        Sound2.setMood('none');
+      }, 400);
+
+      // Voice line happens during the ending song
+      playLine('final-reveal', "I knew you'd pick this one. I really do love you.", () => {
+        playVoiceOnly('final-caption');
+      });
+    }, 1500); // 1.5 second delay so the YES reveal joke lands perfectly
   }
   btnFinal.addEventListener('click', handleFinalYes);
   btnFinal.addEventListener('touchstart', handleFinalYes, {passive:false});
