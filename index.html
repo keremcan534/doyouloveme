@@ -1350,14 +1350,17 @@ alert("TEST 123 - Eğer bu mesajı görüyorsanız oyun güncellenmiştir!");
 
   /* ---------- NO: a randomized run of excuses, then the button makes a run for it ---------- */
   function handleNoPress(e) {
+    alert("DEBUG: NO button pressed! evasiveMode=" + evasiveMode + " isExcusing=" + isExcusing);
     try {
       if(e && e.type === 'touchstart' && !evasiveMode) e.preventDefault();
       if(isExcusing) return;
+      alert("DEBUG: Passed isExcusing check.");
       Sound2.sfx('click');
       if(evasiveMode){ handleEvade(); return; }
       isExcusing = true;
       noCount++;
       const id = sequence[noCount - 1];
+      alert("DEBUG: Running excuse id: " + id);
       if(!id) { isExcusing = false; return; }
       runExcuse(id, noCount === sequence.length);
     } catch (err) {
