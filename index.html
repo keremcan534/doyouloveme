@@ -718,7 +718,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
   <section id="scene-wait" class="scene">
     <div class="adam-figure small"><span class="eye eye-left"></span><span class="eye eye-right"></span></div>
     <div class="watch-panel">
-      <video id="cat-video" class="watch-video" src="cat-duck-shoes.mp4" playsinline preload="auto"></video>
+      <video id="cat-video" class="watch-video" src="cat-duck-shoes.mp4" muted playsinline preload="auto"></video>
       <div class="watch-bar"><div class="watch-bar-fill" id="watch-bar-fill"></div></div>
     </div>
   </section>
@@ -1025,10 +1025,9 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     }
   }
 
-  /* ---------- red eyes that track your finger/cursor, and tilt on phones that allow it ---------- */
+  /* ---------- red eyes that track your finger/cursor ---------- */
   let pointerX = window.innerWidth / 2;
   let pointerY = window.innerHeight / 2;
-  let useTilt = false;
 
   function updateEyes(){
     document.querySelectorAll('.adam-figure').forEach(fig => {
@@ -1044,34 +1043,12 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     });
   }
   window.addEventListener('pointermove', e => {
-    if(useTilt) return;
     pointerX = e.clientX; pointerY = e.clientY; updateEyes();
   });
   window.addEventListener('touchmove', e => {
-    if(useTilt || !e.touches[0]) return;
+    if(!e.touches[0]) return;
     pointerX = e.touches[0].clientX; pointerY = e.touches[0].clientY; updateEyes();
   }, {passive:true});
-
-  function handleOrientation(e){
-    if(e.gamma === null || e.gamma === undefined) return;
-    useTilt = true;
-    const gx = Math.max(-30, Math.min(30, e.gamma));
-    const by = Math.max(-30, Math.min(30, (e.beta || 45) - 45));
-    const dx = (gx / 30) * 2.6;
-    const dy = (by / 30) * 2.6;
-    document.querySelectorAll('.adam-figure .eye').forEach(eye => {
-      eye.style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
-    });
-  }
-  function requestTilt(){
-    if(typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function'){
-      DeviceOrientationEvent.requestPermission().then(state => {
-        if(state === 'granted') window.addEventListener('deviceorientation', handleOrientation);
-      }).catch(() => {});
-    } else if('DeviceOrientationEvent' in window){
-      window.addEventListener('deviceorientation', handleOrientation);
-    }
-  }
 
   /* ---------- text-to-speech, built into the browser, no files or services needed ---------- */
   let chosenVoice = null;
@@ -1110,7 +1087,6 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     bgMusic.play().catch(()=>{});
     ensureBgPlaying();
     startRhythmFlashes();
-    requestTilt();
     startGate.classList.add('hide');
     startGate.removeEventListener('click', unlock);
     playLine('greeting', "Hey. There's something I've been wanting to ask you.");
@@ -1579,6 +1555,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     watchBarFill.style.width = '0%';
     duckBg();
     catVideo.volume = 1;
+    catVideo.muted = true;
     catVideo.currentTime = 0;
     catVideo.onended = () => {
       restoreBg();
@@ -1589,6 +1566,7 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
         watchBarFill.style.width = (catVideo.currentTime / catVideo.duration * 100) + '%';
       }
     };
+    catVideo.addEventListener('playing', () => { catVideo.muted = false; }, {once:true});
     catVideo.play().catch(() => {
       restoreBg();
       setTimeout(() => catVideo.onended(), 4000);
