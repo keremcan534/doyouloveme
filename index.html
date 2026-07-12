@@ -1349,15 +1349,20 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
 
   /* ---------- NO: a randomized run of excuses, then the button makes a run for it ---------- */
   function handleNoPress(e) {
-    if(e && e.type === 'touchstart' && !evasiveMode) e.preventDefault();
-    if(isExcusing) return;
-    Sound2.sfx('click');
-    if(evasiveMode){ handleEvade(); return; }
-    isExcusing = true;
-    noCount++;
-    const id = sequence[noCount - 1];
-    if(!id) { isExcusing = false; return; }
-    runExcuse(id, noCount === sequence.length);
+    try {
+      if(e && e.type === 'touchstart' && !evasiveMode) e.preventDefault();
+      if(isExcusing) return;
+      Sound2.sfx('click');
+      if(evasiveMode){ handleEvade(); return; }
+      isExcusing = true;
+      noCount++;
+      const id = sequence[noCount - 1];
+      if(!id) { isExcusing = false; return; }
+      runExcuse(id, noCount === sequence.length);
+    } catch (err) {
+      alert("Error in NO button: " + err.message);
+      isExcusing = false;
+    }
   }
   btnNo.addEventListener('click', handleNoPress);
   btnNo.addEventListener('touchstart', handleNoPress, {passive:false});
