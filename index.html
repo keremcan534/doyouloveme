@@ -1348,7 +1348,8 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
   });
 
   /* ---------- NO: a randomized run of excuses, then the button makes a run for it ---------- */
-  btnNo.addEventListener('click', () => {
+  function handleNoPress(e) {
+    if(e && e.type === 'touchstart' && !evasiveMode) e.preventDefault();
     if(isExcusing) return;
     Sound2.sfx('click');
     if(evasiveMode){ handleEvade(); return; }
@@ -1357,7 +1358,9 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     const id = sequence[noCount - 1];
     if(!id) { isExcusing = false; return; }
     runExcuse(id, noCount === sequence.length);
-  });
+  }
+  btnNo.addEventListener('click', handleNoPress);
+  btnNo.addEventListener('touchstart', handleNoPress, {passive:false});
 
   function runExcuse(id, isLast){
     const proceed = () => {
