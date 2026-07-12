@@ -1955,39 +1955,29 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
     Sound2.sfx('chime');
     vibe(40);
     
-    // Switch scene immediately!
-    document.getElementById('win-title').textContent = 'there it is.';
-    document.getElementById('win-caption').textContent = "that's exactly what I was hoping for.";
-    showScene('scene-win');
-    burstConfetti();
-    startHeartFinale();
-
-    // Prepare ending audio
+    // Prepare ending audio to unlock on touch
     if (!endingAudio) {
       endingAudio = new Audio(AUDIO_BASE + 'playdateending.mp3');
       endingAudio.play().then(() => { endingAudio.pause(); endingAudio.currentTime = 0; }).catch(() => {});
     }
 
-    // Play ending music and video almost instantly (small delay for dramatic effect)
+    // Wait 1.5 seconds for the user to see the "YES" button reveal
     setTimeout(() => {
-      // Switch scene after they read YES
       document.getElementById('win-title').textContent = 'there it is.';
       document.getElementById('win-caption').textContent = "that's exactly what I was hoping for.";
       showScene('scene-win');
       burstConfetti();
       startHeartFinale();
 
-      // Play ending music and video almost instantly
       setTimeout(() => {
         playEndingSong();
         Sound2.setMood('none');
       }, 400);
 
-      // Voice line happens during the ending song
       playLine('final-reveal', "I knew you'd pick this one. I really do love you.", () => {
         playVoiceOnly('final-caption');
       });
-    }, 1500); // 1.5 second delay so the YES reveal joke lands perfectly
+    }, 1500);
   }
   btnFinal.addEventListener('click', handleFinalYes);
   btnFinal.addEventListener('touchstart', handleFinalYes, {passive:false});
