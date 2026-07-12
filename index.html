@@ -693,12 +693,13 @@ so the link shows a nice card when shared in WhatsApp/iMessage/Instagram. -->
 <audio id="audio-explosion" src="audio/explosion.mp3" preload="none"></audio>
 
 <script>
-alert("TEST 123 - Eğer bu mesajı görüyorsanız oyun güncellenmiştir!");
 (function(){
   const stage = document.getElementById('stage');
   const scenes = document.querySelectorAll('.scene');
   const btnYes = document.getElementById('btn-yes');
   const btnNo  = document.getElementById('btn-no');
+  const btnConfirmYes = document.getElementById('btn-confirm-yes');
+  const btnConfirmNo = document.getElementById('btn-confirm-no');
   const btnRow = document.querySelector('#scene-intro .btn-row');
   const btnFinal = document.getElementById('btn-final');
   const btnReplay = document.getElementById('btn-replay');
@@ -1350,21 +1351,17 @@ alert("TEST 123 - Eğer bu mesajı görüyorsanız oyun güncellenmiştir!");
 
   /* ---------- NO: a randomized run of excuses, then the button makes a run for it ---------- */
   function handleNoPress(e) {
-    alert("DEBUG: NO button pressed! evasiveMode=" + evasiveMode + " isExcusing=" + isExcusing);
     try {
       if(e && e.type === 'touchstart' && !evasiveMode) e.preventDefault();
       if(isExcusing) return;
-      alert("DEBUG: Passed isExcusing check.");
       Sound2.sfx('click');
       if(evasiveMode){ handleEvade(); return; }
       isExcusing = true;
       noCount++;
       const id = sequence[noCount - 1];
-      alert("DEBUG: Running excuse id: " + id);
       if(!id) { isExcusing = false; return; }
       runExcuse(id, noCount === sequence.length);
     } catch (err) {
-      alert("Error in NO button: " + err.message);
       isExcusing = false;
     }
   }
